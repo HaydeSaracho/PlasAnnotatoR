@@ -1,0 +1,26 @@
+# Datos y bases de datos
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Entorno virtual
+.venv/
+env/
+venv/
+
+# VSCode
+.vscode/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Tests
+.pytest_cache/
+.coverage
