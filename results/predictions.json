@@ -1,0 +1,66 @@
+[
+  {
+    "contig_id": "NZ_QSGS01000038.1",
+    "length_bp": 1667,
+    "prediction": "chromosome",
+    "confidence": 0.0,
+    "aln_score": null,
+    "db": "tpa"
+  },
+  {
+    "contig_id": "NZ_SJVF01000036.1",
+    "length_bp": 1047,
+    "prediction": "plasmid",
+    "confidence": 0.7232,
+    "aln_score": null,
+    "db": "tpa"
+  },
+  {
+    "contig_id": "NZ_SJVD01000036.1",
+    "length_bp": 1047,
+    "prediction": "plasmid",
+    "confidence": 0.7232,
+    "aln_score": null,
+    "db": "tpa"
+  },
+  {
+    "contig_id": "NZ_SJVE01000036.1",
+    "length_bp": 1047,
+    "prediction": "plasmid",
+    "confidence": 0.7232,
+    "aln_score": null,
+    "db": "tpa"
+  },
+  {
+    "contig_id": "NZ_JACSLY010000035.1",
+    "length_bp": 1058,
+    "prediction": "plasmid",
+    "confidence": 0.7791,
+    "aln_score": null,
+    "db": "tpa"
+  },
+  {
+    "contig_id": "NZ_JACSMC010000076.1",
+    "length_bp": 1012,
+    "prediction": "plasmid",
+    "confidence": 0.9989,
+    "aln_score": null,
+    "db": "tpa"
+  },
+  {
+    "contig_id": "NZ_JAPEHX010000109.1",
+    "length_bp": 1704,
+    "prediction": "chromosome",
+    "confidence": 0.0874,
+    "aln_score": null,
+    "db": "tpa"
+  },
+  {
+    "contig_id": "NZ_CANDNX010000023.1",
+    "length_bp": 1027,
+    "prediction": "plasmid",
+    "confidence": 0.7443,
+    "aln_score": null,
+    "db": "tpa"
+  }
+]

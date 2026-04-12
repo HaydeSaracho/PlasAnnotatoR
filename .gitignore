@@ -24,3 +24,6 @@ Thumbs.db
 # Tests
 .pytest_cache/
 .coverage
+
+# Note
+Metadata.tsv
