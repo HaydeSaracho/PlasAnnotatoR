@@ -16,6 +16,12 @@ venv/
 
 # VSCode
 .vscode/
+# Datos de prueba y resultados
+results/
+*.fasta
+*.fa
+*.fna
+plasannotator.egg-info/
 
 # Sistema
 .DS_Store

@@ -1,9 +1,0 @@
-contig_id	length_bp	prediction	confidence	aln_score	db
-NZ_QSGS01000038.1	1667	chromosome	0.0	NA	tpa
-NZ_SJVF01000036.1	1047	plasmid	0.7232	NA	tpa
-NZ_SJVD01000036.1	1047	plasmid	0.7232	NA	tpa
-NZ_SJVE01000036.1	1047	plasmid	0.7232	NA	tpa
-NZ_JACSLY010000035.1	1058	plasmid	0.7791	NA	tpa
-NZ_JACSMC010000076.1	1012	plasmid	0.9989	NA	tpa
-NZ_JAPEHX010000109.1	1704	chromosome	0.0874	NA	tpa
-NZ_CANDNX010000023.1	1027	plasmid	0.7443	NA	tpa
