@@ -25,7 +25,7 @@ def list_databases() -> None:
 
         if not db_path.exists():
             status = "no instalada"
-        elif not idx_path.exists():
+        elif not idx_path.exists() or idx_path.stat().st_size == 0:
             status = "sin índice"
         else:
             status = "lista"
