@@ -60,12 +60,13 @@ def _run_minimap2(fasta_path: Path, index_path: Path, threads: int) -> dict[str,
     Retorna un dict {contig_id: alignment_score} normalizado (0-1).
     """
     cmd = [
-        "minimap2",
-        "-c",
-        "--secondary=no",
-        "-t", str(threads),
-        str(index_path),
-        str(fasta_path),
+    "minimap2",
+    "-c",
+    "--secondary=no",
+    "--split-prefix=/tmp/plasannotator_split",
+    "-t", str(threads),
+    str(index_path),
+    str(fasta_path),
     ]
 
     result = subprocess.run(cmd, capture_output=True, text=True)
