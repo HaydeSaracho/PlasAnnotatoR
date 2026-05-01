@@ -18,6 +18,48 @@ from plasannotator.db.manager import get_index_path, INDEX_DIR
 from plasannotator.network.export import export_graphml, export_json
 
 
+# ---------------------------------------------------------------------------
+# Metadata
+# ---------------------------------------------------------------------------
+
+METADATA_PATH = Path("/mnt/d/PlasAnnotatoR/ALL.plasmid_list.download.tsv")
+
+
+def _load_metadata() -> dict[str, dict]:
+    """
+    Carga la tabla de metadata de plasmidios.
+    Retorna dict {plasmid_id: {topology, completeness, size_bp, gc,
+                               host, mob_type, mobility,
+                               primary_cluster, secondary_cluster}}
+    """
+    metadata = {}
+    if not METADATA_PATH.exists():
+        logger.warning(f"Metadata no encontrada: {METADATA_PATH}")
+        return metadata
+
+    with open(METADATA_PATH, newline="") as f:
+        reader = csv.DictReader(f, delimiter="\t")
+        for row in reader:
+            pid = row["Plasmid_ID"].strip()
+            metadata[pid] = {
+                "topology":          row.get("Topology", "-"),
+                "completeness":      row.get("Completeness", "-"),
+                "size_bp":           row.get("Size (bp)", "-"),
+                "gc":                row.get("GC", "-"),
+                "host":              row.get("Host", "-"),
+                "mob_type":          row.get("MOB_type(s)", "-"),
+                "mobility":          row.get("Predicted_Mobility", "-"),
+                "primary_cluster":   row.get("Primary_Cluster_ID", "-"),
+                "secondary_cluster": row.get("Secondary_Cluster_ID", "-"),
+            }
+    logger.info(f"Metadata cargada: {len(metadata):,} entradas")
+    return metadata
+
+
+# ---------------------------------------------------------------------------
+# Carga de predicciones
+# ---------------------------------------------------------------------------
+
 def _load_plasmid_contigs(tsv_path: Path) -> list[dict]:
     """
     Lee el TSV de predicciones y retorna solo los contigs
@@ -54,6 +96,10 @@ def _extract_plasmid_fasta(
     return out_path
 
 
+# ---------------------------------------------------------------------------
+# Alineamiento
+# ---------------------------------------------------------------------------
+
 def _run_all_vs_all_minimap2(
     query_fasta: Path,
     index_path: Path,
@@ -86,7 +132,7 @@ def _run_all_vs_all_minimap2(
         matches = int(parts[9])
         aln_len = int(parts[10])
         qlen = int(parts[1])
-        if aln_len > 0 and qid != tid:
+        if aln_len > 0:
             ani = (matches / aln_len) * min(aln_len / qlen, 1.0)
             edges.append((qid, tid, round(ani, 4)))
 
@@ -118,6 +164,10 @@ def _run_all_vs_all_minimap2(
 
     return edges
 
+
+# ---------------------------------------------------------------------------
+# Construcción del grafo
+# ---------------------------------------------------------------------------
 
 def _build_graph(
     plasmids: list[dict],
@@ -157,6 +207,25 @@ def _build_graph(
     return G
 
 
+def _enrich_graph(G: nx.Graph, metadata: dict[str, dict]) -> nx.Graph:
+    """
+    Agrega atributos de metadata a los nodos de referencia del grafo.
+    """
+    enriched = 0
+    for node in G.nodes():
+        if G.nodes[node].get("node_type") == "reference":
+            meta = metadata.get(node, {})
+            if meta:
+                G.nodes[node].update(meta)
+                enriched += 1
+    logger.info(f"Nodos enriquecidos con metadata: {enriched}")
+    return G
+
+
+# ---------------------------------------------------------------------------
+# Pipeline principal
+# ---------------------------------------------------------------------------
+
 def build_network(
     tsv_path: Path,
     db_name: str,
@@ -194,8 +263,9 @@ def build_network(
     plasmid_ids = {p["id"] for p in plasmids}
 
     if original_fasta is None:
-        # Intentar inferir desde el TSV
-        original_fasta = tsv_path.parent / (tsv_path.stem.replace("predictions", "input") + ".fasta")
+        original_fasta = tsv_path.parent / (
+            tsv_path.stem.replace("predictions", "input") + ".fasta"
+        )
 
     plasmid_fasta = output_prefix.parent / "plasmids_query.fasta"
 
@@ -214,9 +284,14 @@ def build_network(
     edges = _run_all_vs_all_minimap2(plasmid_fasta, index_path, threads)
     logger.info(f"  {len(edges)} pares de secuencias alineados.")
 
+    # 3.5 Cargar metadata
+    logger.info("[3.5/4] Cargando metadata de plasmidios...")
+    metadata = _load_metadata()
+
     # 4. Construir y exportar grafo
     logger.info("[4/4] Construyendo grafo...")
     G = _build_graph(plasmids, edges, ani_threshold)
+    G = _enrich_graph(G, metadata)
 
     graphml_path = export_graphml(G, output_prefix)
     json_path = export_json(G, output_prefix)

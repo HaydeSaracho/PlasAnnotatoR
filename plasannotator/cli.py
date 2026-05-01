@@ -123,6 +123,7 @@ def predict(
 def network(
     predictions: str = typer.Argument(..., help="TSV de predicciones previas."),
     db: str = typer.Option("plsdb", "--db", "-d", help="DB de referencia."),
+    fasta: str = typer.Option(None, "--fasta", "-f", help="FASTA original de entrada."),
     output: str = typer.Option("results/network", "--output", "-o", help="Prefijo de salida."),
     ani: float = typer.Option(0.95, "--ani", help="Umbral ANI (0-1)."),
     threads: int = typer.Option(4, "--threads", "-t", help="Número de hilos CPU."),
@@ -136,9 +137,12 @@ def network(
         console.print(f"[red]Error:[/red] Archivo no encontrado: {predictions}")
         raise typer.Exit(1)
 
+    fasta_path = Path(fasta) if fasta else None
+
     console.print(f"\n[bold]PlasAnnotatoR[/bold] · red de secuencias")
     console.print(f"  Predicciones : {predictions}")
     console.print(f"  DB           : {db}")
+    console.print(f"  FASTA        : {fasta or 'auto'}")
     console.print(f"  Umbral ANI   : {ani}\n")
 
     build_network(
@@ -147,6 +151,7 @@ def network(
         output_prefix=output,
         ani_threshold=ani,
         threads=threads,
+        original_fasta=fasta_path,
     )
 
 
