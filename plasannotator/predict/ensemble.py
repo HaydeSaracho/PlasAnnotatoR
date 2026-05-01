@@ -4,14 +4,13 @@ Motor de predicción ensemble: k-mer + alineamiento Minimap2.
 
 import csv
 import json
+import pickle
 import subprocess
 import tempfile
 from pathlib import Path
 
 import numpy as np
 from Bio import SeqIO
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import StandardScaler
 
 from plasannotator.config import (
     CONFIDENCE_THRESHOLD,
@@ -20,31 +19,38 @@ from plasannotator.config import (
     logger,
 )
 from plasannotator.db.manager import get_index_path
-from plasannotator.predict.kmer import extract_features, get_kmer_vocab, KMER_SIZE
+from plasannotator.predict.kmer import extract_features, KMER_SIZE
 
 
 # ---------------------------------------------------------------------------
-# Clasificador ML (k-mer)
+# Clasificador ML (modelo entrenado)
 # ---------------------------------------------------------------------------
 
-def _train_dummy_classifier(n_features: int) -> tuple:
-    """
-    Clasificador de referencia para cuando no hay modelo entrenado.
-    Usa heurísticas simples basadas en GC y longitud.
-    Se reemplazará por un modelo entrenado en versiones futuras.
-    """
-    clf = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
-    scaler = StandardScaler()
-    return clf, scaler
+_MODEL_PATH = Path(__file__).parent.parent.parent / "data" / "models" / "rf_model.pkl"
+_model = None
+
+
+def _load_model():
+    """Carga el modelo RF entrenado (singleton)."""
+    global _model
+    if _model is None:
+        if not _MODEL_PATH.exists():
+            logger.warning("Modelo RF no encontrado — usando heurística provisional.")
+            return None
+        with open(_MODEL_PATH, "rb") as f:
+            _model = pickle.load(f)
+        logger.info(f"Modelo RF cargado: {_MODEL_PATH}")
+    return _model
 
 
 def _kmer_score(features: np.ndarray) -> np.ndarray:
     """
-    Score provisional basado en k-mers.
-    Retorna probabilidad de plasmidio por contig (0-1).
-    Placeholder hasta tener modelo entrenado.
+    Score de plasmidio basado en el modelo RF entrenado.
+    Si el modelo no está disponible, usa heurística de varianza.
     """
-    # Heurística temporal: varianza alta en k-mers → más probable plasmidio
+    model = _load_model()
+    if model is not None:
+        return model.predict_proba(features)[:, 1].astype(np.float32)
     variances = np.var(features, axis=1)
     scores = (variances - variances.min()) / (variances.max() - variances.min() + 1e-9)
     return scores.astype(np.float32)
@@ -60,13 +66,13 @@ def _run_minimap2(fasta_path: Path, index_path: Path, threads: int) -> dict[str,
     Retorna un dict {contig_id: alignment_score} normalizado (0-1).
     """
     cmd = [
-    "minimap2",
-    "-c",
-    "--secondary=no",
-    "--split-prefix=/tmp/plasannotator_split",
-    "-t", str(threads),
-    str(index_path),
-    str(fasta_path),
+        "minimap2",
+        "-c",
+        "--secondary=no",
+        "--split-prefix=/tmp/plasannotator_split",
+        "-t", str(threads),
+        str(index_path),
+        str(fasta_path),
     ]
 
     result = subprocess.run(cmd, capture_output=True, text=True)
@@ -199,13 +205,15 @@ def run_prediction(
     logger.info(f"[2/4] Extrayendo features k-mer (k={KMER_SIZE})...")
     contig_ids, lengths, features = extract_features(fasta_path)
 
-    # 3. Alineamiento Minimap2
-    logger.info(f"[3/4] Alineando contra '{db_name}' con Minimap2...")
+    # 3. Clasificación ML
+    logger.info(f"[3/4] Clasificando con modelo RF...")
+    kmer_scores = _kmer_score(features)
+
+    # 4. Alineamiento Minimap2
+    logger.info(f"[4/4] Alineando contra '{db_name}' con Minimap2...")
     aln_scores = _run_minimap2(fasta_path, index_path, threads)
 
-    # 4. Ensemble
-    logger.info(f"[4/4] Calculando score ensemble...")
-    kmer_scores = _kmer_score(features)
+    # 5. Ensemble
     final_scores = _ensemble_score(kmer_scores, aln_scores, contig_ids)
 
     # Escribir salidas
@@ -218,7 +226,7 @@ def run_prediction(
         final_scores, aln_scores, db_name, CONFIDENCE_THRESHOLD
     )
 
-    # Resumen en consola
+    # Resumen
     n_plasmids = sum(1 for s in final_scores if s >= CONFIDENCE_THRESHOLD)
     n_chrom = len(final_scores) - n_plasmids
 
