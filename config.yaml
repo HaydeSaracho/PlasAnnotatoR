@@ -1,27 +1,29 @@
-# PlasAnnotatoR v2.0 - Configuración central
+# PlasAnnotatoR - Configuration file
+# Edit the paths below to match your installation
+
 project:
   name: PlasAnnotatoR
-  version: "2.0"
+  version: "1.0"
   output_dir: results/
 
 environments:
   plasclass:
-    conda_base: /home/bionfo/micromamba/envs/plasclass
-    python: /home/bionfo/micromamba/envs/plasclass/bin/python
-    script: /home/bionfo/micromamba/envs/plasclass/bin/classify_fasta.py
+    # Path to the plasclass conda/micromamba environment
+    conda_base: /path/to/envs/plasclass
+    python: /path/to/envs/plasclass/bin/python
+    script: /path/to/envs/plasclass/bin/classify_fasta.py
     threshold: 0.5
-
   plasme:
-    conda_base: /home/bionfo/anaconda3/envs/plasme
-    script: /home/bionfo/PLASMe/PLASMe.py
-    database: /home/bionfo/PLASMe/DB
+    # Path to the plasme conda environment and PLASMe installation
+    conda_base: /path/to/envs/plasme
+    script: /path/to/PLASMe/PLASMe.py
+    database: /path/to/PLASMe/DB
     threshold: 0.5
-
   plasmidhunter:
-    conda_base: /home/bionfo/micromamba/envs/plasmidhunter
-    script: /home/bionfo/micromamba/envs/plasmidhunter/bin/plasmidhunter
+    # Path to the plasmidhunter conda/micromamba environment
+    conda_base: /path/to/envs/plasmidhunter
+    script: /path/to/envs/plasmidhunter/bin/plasmidhunter
     threshold: 0.5
-
   rf_model:
     model_path: data/models/rf_model.pkl
 
@@ -31,10 +33,10 @@ ensemble:
     plasme: 0.9748
     plasmidhunter: 0.9178
     rf_model: 0.9872
-  min_votes: 3
   final_threshold: 0.5
 
 databases:
+  # All paths relative to PlasAnnotatoR root directory
   plsdb: data/plsdb/sequences.fasta
   metadata: data/plsdb/meta/nuccore.csv
   amr: data/plsdb/meta/amr.tsv
@@ -42,7 +44,7 @@ databases:
   taxonomy: data/plsdb/meta/taxonomy.csv
   card: data/indexes/nucleotide_fasta_protein_homolog_model.fasta
   mibig: data/indexes/mibig_4.0.fasta
-  cazy:  data/indexes/cazy.fasta
+  cazy: data/indexes/cazy.fasta
 
 resources:
   threads: 8

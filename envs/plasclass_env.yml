@@ -1,0 +1,13 @@
+name: plasclass
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.7
+  - scikit-learn=0.21.3
+  - numpy=1.21.6
+  - scipy=1.7.3
+  - joblib
+  - pip
+  - pip:
+    - plasclass-dpellow==0.1
