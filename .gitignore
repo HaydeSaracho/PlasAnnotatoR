@@ -8,3 +8,4 @@ temp/
 *.fasta
 *.tsv
 *.gz
+config.yaml

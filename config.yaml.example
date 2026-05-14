@@ -1,0 +1,52 @@
+# PlasAnnotatoR - Configuration file
+# Edit the paths below to match your installation
+
+project:
+  name: PlasAnnotatoR
+  version: "1.0"
+  output_dir: results/
+
+environments:
+  plasclass:
+    # Path to the plasclass conda/micromamba environment
+    conda_base: /path/to/envs/plasclass
+    python: /path/to/envs/plasclass/bin/python
+    script: /path/to/envs/plasclass/bin/classify_fasta.py
+    threshold: 0.5
+  plasme:
+    # Path to the plasme conda environment and PLASMe installation
+    conda_base: /path/to/envs/plasme
+    script: /path/to/PLASMe/PLASMe.py
+    database: /path/to/PLASMe/DB
+    threshold: 0.5
+  plasmidhunter:
+    # Path to the plasmidhunter conda/micromamba environment
+    conda_base: /path/to/envs/plasmidhunter
+    script: /path/to/envs/plasmidhunter/bin/plasmidhunter
+    threshold: 0.5
+  rf_model:
+    model_path: data/models/rf_model.pkl
+
+ensemble:
+  weights:
+    plasclass: 0.9017
+    plasme: 0.9748
+    plasmidhunter: 0.9178
+    rf_model: 0.9872
+  final_threshold: 0.5
+
+databases:
+  # All paths relative to PlasAnnotatoR root directory
+  plsdb: data/plsdb/sequences.fasta
+  metadata: data/plsdb/meta/nuccore.csv
+  amr: data/plsdb/meta/amr.tsv
+  typing: data/plsdb/meta/typing.csv
+  taxonomy: data/plsdb/meta/taxonomy.csv
+  card: data/indexes/nucleotide_fasta_protein_homolog_model.fasta
+  mibig: data/indexes/mibig_4.0.fasta
+  cazy: data/indexes/cazy.fasta
+
+resources:
+  threads: 8
+  memory_gb: 16
+  temp_dir: temp/
