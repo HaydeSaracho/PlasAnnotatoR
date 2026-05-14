@@ -32,10 +32,14 @@ if [ "$SKIP_PLASME" = true ]; then
     echo "Skipped (conda not found)."
 else
     conda env create -f envs/plasme_env.yml
-    echo "Installing PLASMe..."
+    echo "Cloning PLASMe..."
+    git clone https://github.com/HubertTang/PLASMe.git ~/PLASMe
+    echo "Downloading PLASMe database..."
     source "$(conda info --base)/etc/profile.d/conda.sh"
     conda activate plasme
-    pip install git+https://github.com/HubertTang/PLASMe.git
+    cd ~/PLASMe
+    python PLASMe.py download
+    cd -
     conda deactivate
     echo "Done."
 fi
