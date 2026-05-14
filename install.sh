@@ -47,7 +47,7 @@ fi
 
 echo ""
 echo "[3/4] Installing PlasmidHunter environment..."
-micromamba env create -f envs/plasmidhunter_env.yml --yes
+micromamba env create -f envs/plasmidhunter_env.yml --yes --channel-priority flexible
 echo "Done."
 
 echo ""
