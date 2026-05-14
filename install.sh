@@ -8,20 +8,22 @@ echo "================================================"
 # Check micromamba
 if ! command -v micromamba &> /dev/null; then
     echo "ERROR: micromamba not found. Please install micromamba first."
-    echo "https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html"
+    echo "See README.md for installation instructions."
     exit 1
 fi
 
-# Check conda/anaconda for PLASMe
+# Check conda for PLASMe
 if ! command -v conda &> /dev/null; then
     echo "WARNING: conda not found. PLASMe environment will be skipped."
-    echo "Install Anaconda/Miniconda to enable PLASMe support."
+    echo "Install Miniconda to enable PLASMe support."
     SKIP_PLASME=true
 fi
 
 echo ""
 echo "[1/4] Installing PlasClass environment..."
 micromamba env create -f envs/plasclass_env.yml --yes
+echo "Installing PlasClass..."
+~/micromamba/envs/plasclass/bin/pip install --no-deps git+https://github.com/Shamir-Lab/PlasClass.git
 echo "Done."
 
 echo ""
@@ -53,8 +55,9 @@ echo "================================================"
 echo "  Installation complete!"
 echo ""
 echo "  Next steps:"
-echo "  1. Edit config.yaml with your environment paths"
-echo "  2. Download databases (see README.md)"
-echo "  3. Run: micromamba activate plasannotator"
-echo "  4. Run: python main.py -i input.fasta -o results/"
+echo "  1. cp config.yaml.example config.yaml"
+echo "  2. Edit config.yaml with your environment paths"
+echo "  3. Download databases (see README.md)"
+echo "  4. micromamba activate plasannotator"
+echo "  5. python main.py -i input.fasta -o results/"
 echo "================================================"
