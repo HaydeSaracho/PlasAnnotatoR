@@ -11,7 +11,7 @@ PlasAnnotatoR combines four plasmid classifiers using weighted voting (AUC-based
 ### System dependencies
 
 - micromamba (required)
-- conda or Anaconda (required for PLASMe)
+- conda or Miniconda (required for PLASMe)
 - NCBI BLAST+ (blastn, makeblastdb)
 - DIAMOND
 - Prodigal
@@ -22,10 +22,11 @@ Run the following command in your terminal:
 
     "${SHELL}" <(curl -L micro.mamba.pm/install.sh)
 
-When prompted:
-- Micromamba binary folder: press Enter to accept default (~/.local/bin)
-- Init shell: y
-- Configure conda-forge: y
+When prompted, answer as follows:
+- Micromamba binary folder [~/.local/bin]: press Enter (do NOT type anything)
+- Prefix location [~/micromamba]: press Enter (do NOT type anything)
+- Init shell (bash) [Y/n]: y
+- Configure conda-forge [Y/n]: y
 
 Then reload your shell:
 
@@ -35,14 +36,12 @@ Verify the installation:
 
     micromamba --version
 
-### 2. Install conda (required for PLASMe only)
-
-Download the Miniconda installer for Linux:
+### 2. Install Miniconda (required for PLASMe only)
 
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
     bash Miniconda3-latest-Linux-x86_64.sh
 
-Follow the prompts and accept the defaults. Then reload your shell:
+Follow the prompts and accept all defaults. Then reload your shell:
 
     source ~/.bashrc
 
@@ -81,31 +80,35 @@ Or create environments manually:
     micromamba env create -f envs/plasannotator_env.yml
     conda env create -f envs/plasme_env.yml
 
-PLASMe also requires a separate installation of the tool and its database:
+PLASMe also requires installing the tool and downloading its database:
 
     conda activate plasme
     pip install git+https://github.com/HubertTang/PLASMe.git
-    # Download PLASMe database following instructions at:
-    # https://github.com/HubertTang/PLASMe
+
+Download the PLASMe database following the instructions at:
+https://github.com/HubertTang/PLASMe
 
 ### 3. Configure paths
 
     cp config.yaml.example config.yaml
 
-Edit config.yaml and set the paths to each environment and tool on your system:
+Edit config.yaml and replace /path/to/ with the actual paths on your system.
+The default micromamba environments directory is ~/micromamba/envs/.
+
+Example for a user named john:
 
     environments:
       plasclass:
-        conda_base: /path/to/envs/plasclass
-        python: /path/to/envs/plasclass/bin/python
-        script: /path/to/envs/plasclass/bin/classify_fasta.py
+        conda_base: /home/john/micromamba/envs/plasclass
+        python: /home/john/micromamba/envs/plasclass/bin/python
+        script: /home/john/micromamba/envs/plasclass/bin/classify_fasta.py
       plasme:
-        conda_base: /path/to/envs/plasme
-        script: /path/to/PLASMe/PLASMe.py
-        database: /path/to/PLASMe/DB
+        conda_base: /home/john/miniconda3/envs/plasme
+        script: /home/john/PLASMe/PLASMe.py
+        database: /home/john/PLASMe/DB
       plasmidhunter:
-        conda_base: /path/to/envs/plasmidhunter
-        script: /path/to/envs/plasmidhunter/bin/plasmidhunter
+        conda_base: /home/john/micromamba/envs/plasmidhunter
+        script: /home/john/micromamba/envs/plasmidhunter/bin/plasmidhunter
 
 ### 4. Download databases
 
