@@ -31,7 +31,12 @@ if [ "$SKIP_PLASME" = true ]; then
     echo "Skipped (conda not found)."
 else
     conda env create -f envs/plasme_env.yml
-    git clone https://github.com/HubertTang/PLASMe.git ~/PLASMe
+    if [ -d ~/PLASMe ]; then
+        echo "PLASMe directory already exists, skipping clone."
+    else
+        echo "Cloning PLASMe..."
+        git clone https://github.com/HubertTang/PLASMe.git ~/PLASMe
+    fi
     echo "Done."
     echo ""
     echo "  NOTE: PLASMe database must be downloaded manually (12.4 GB)."
