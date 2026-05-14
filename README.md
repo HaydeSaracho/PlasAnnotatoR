@@ -16,17 +16,39 @@ PlasAnnotatoR combines four plasmid classifiers using weighted voting (AUC-based
 - DIAMOND
 - Prodigal
 
-### Install micromamba
+### 1. Install micromamba
+
+Run the following command in your terminal:
 
     "${SHELL}" <(curl -L micro.mamba.pm/install.sh)
 
-Or follow the official instructions at:
-https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html
+When prompted:
+- Micromamba binary folder: press Enter to accept default (~/.local/bin)
+- Init shell: y
+- Configure conda-forge: y
 
-### Install conda (for PLASMe)
+Then reload your shell:
 
-Download and install Miniconda from:
-https://docs.conda.io/en/latest/miniconda.html
+    source ~/.bashrc
+
+Verify the installation:
+
+    micromamba --version
+
+### 2. Install conda (required for PLASMe only)
+
+Download the Miniconda installer for Linux:
+
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    bash Miniconda3-latest-Linux-x86_64.sh
+
+Follow the prompts and accept the defaults. Then reload your shell:
+
+    source ~/.bashrc
+
+Verify the installation:
+
+    conda --version
 
 ### Tool environments
 
@@ -109,7 +131,7 @@ MIBiG 4.0 (biosynthetic gene clusters):
 
 CAZy (carbohydrate-active enzymes):
 
-    # Download from http://www.cazy.org/ or https://bcb.unl.edu/dbCAN2/download/
+    # Download from https://bcb.unl.edu/dbCAN2/download/
     # Place cazy.fasta in data/indexes/
 
 RF model:
