@@ -10,4 +10,4 @@ dependencies:
   - joblib
   - pip
   - pip:
-    - plasclass-dpellow==0.1
+    - git+https://github.com/Shamir-Lab/PlasClass.git
