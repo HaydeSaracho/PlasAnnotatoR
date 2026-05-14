@@ -10,10 +10,23 @@ PlasAnnotatoR combines four plasmid classifiers using weighted voting (AUC-based
 
 ### System dependencies
 
-- micromamba or conda/mamba
+- micromamba (required)
+- conda or Anaconda (required for PLASMe)
 - NCBI BLAST+ (blastn, makeblastdb)
 - DIAMOND
 - Prodigal
+
+### Install micromamba
+
+    "${SHELL}" <(curl -L micro.mamba.pm/install.sh)
+
+Or follow the official instructions at:
+https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html
+
+### Install conda (for PLASMe)
+
+Download and install Miniconda from:
+https://docs.conda.io/en/latest/miniconda.html
 
 ### Tool environments
 
