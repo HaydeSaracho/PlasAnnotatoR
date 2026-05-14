@@ -22,7 +22,6 @@ fi
 echo ""
 echo "[1/4] Installing PlasClass environment..."
 micromamba env create -f envs/plasclass_env.yml --yes
-echo "Installing PlasClass..."
 ~/micromamba/envs/plasclass/bin/pip install --no-deps git+https://github.com/Shamir-Lab/PlasClass.git
 echo "Done."
 
@@ -32,16 +31,13 @@ if [ "$SKIP_PLASME" = true ]; then
     echo "Skipped (conda not found)."
 else
     conda env create -f envs/plasme_env.yml
-    echo "Cloning PLASMe..."
     git clone https://github.com/HubertTang/PLASMe.git ~/PLASMe
-    echo "Downloading PLASMe database..."
-    source "$(conda info --base)/etc/profile.d/conda.sh"
-    conda activate plasme
-    cd ~/PLASMe
-    python PLASMe.py download
-    cd -
-    conda deactivate
     echo "Done."
+    echo ""
+    echo "  NOTE: PLASMe database must be downloaded manually (12.4 GB)."
+    echo "  Download DB.zip from:"
+    echo "  https://zenodo.org/record/8046934/files/DB.zip"
+    echo "  and place the uncompressed DB folder inside ~/PLASMe/"
 fi
 
 echo ""
