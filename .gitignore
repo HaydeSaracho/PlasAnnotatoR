@@ -10,3 +10,4 @@ temp/
 *.gz
 config.yaml
 config.yaml
+__pycache__/
