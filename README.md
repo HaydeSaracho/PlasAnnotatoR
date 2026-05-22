@@ -24,7 +24,7 @@ Run the following command in your terminal:
 
 When prompted, answer as follows:
 - Micromamba binary folder [~/.local/bin]: press Enter (do NOT type anything)
-- Prefix location [~/micromamba]: press Enter (do NOT type anything)
+- Prefix location [~/micromamba]: press Enter if prompted (do NOT type anything)
 - Init shell (bash) [Y/n]: y
 - Configure conda-forge [Y/n]: y
 
