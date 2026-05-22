@@ -16,50 +16,6 @@ PlasAnnotatoR combines four plasmid classifiers using weighted voting (AUC-based
 All other dependencies (BLAST+, DIAMOND, Prodigal, Python packages) 
 are installed automatically by the installation script.
 
-### 1. Install micromamba
-
-Run the following command in your terminal:
-
-    "${SHELL}" <(curl -L micro.mamba.pm/install.sh)
-
-When prompted, answer as follows:
-- Micromamba binary folder [~/.local/bin]: press Enter (do NOT type anything)
-- Prefix location [~/micromamba]: press Enter if prompted (do NOT type anything)
-- Init shell (bash) [Y/n]: y
-- Configure conda-forge [Y/n]: y
-
-Then reload your shell:
-
-    source ~/.bashrc
-
-Verify the installation:
-
-    micromamba --version
-
-### 2. Install Miniconda (required for PLASMe only)
-
-    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-    bash Miniconda3-latest-Linux-x86_64.sh
-
-Follow the prompts and accept all defaults. Then reload your shell:
-
-    source ~/.bashrc
-
-Verify the installation:
-
-    conda --version
-
-### Tool environments
-
-PlasAnnotatoR uses four separate environments due to dependency conflicts between tools.
-
-| Tool | Environment | Key dependency |
-|---|---|---|
-| PlasClass | plasclass | Python 3.7, scikit-learn 0.21.3 |
-| PLASMe | plasme | Python 3.9, PyTorch 1.11, CUDA 10.2 |
-| PlasmidHunter | plasmidhunter | Python 3.10, scikit-learn 1.3.2 |
-| PlasAnnotatoR | plasannotator | Python 3.10 |
-
 ## Installation
 
 ### 1. Clone the repository
