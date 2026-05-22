@@ -25,8 +25,6 @@ are installed automatically by the installation script.
 
 ### 2. Create environments
 
-Run the installation script:
-
     bash install.sh
 
 Or create environments manually:
@@ -36,21 +34,25 @@ Or create environments manually:
     micromamba env create -f envs/plasannotator_env.yml
     conda env create -f envs/plasme_env.yml
 
-PLASMe also requires installing the tool and downloading its database:
+PLASMe also requires cloning the tool and downloading its database:
 
+    git clone https://github.com/HubertTang/PLASMe.git ~/PLASMe
     conda activate plasme
-    pip install git+https://github.com/HubertTang/PLASMe.git
+    cd ~/PLASMe && python PLASMe_db.py
 
-Download the PLASMe database following the instructions at:
-https://github.com/HubertTang/PLASMe
+    # If PLASMe_db.py fails, download the database manually (12.4 GB):
+    # https://zenodo.org/record/8046934/files/DB.zip
+    # Uncompress and place the DB folder inside ~/PLASMe/
 
 ### 3. Configure paths
 
+    bash configure.sh
+
+Or manually copy and edit the config file:
+
     cp config.yaml.example config.yaml
 
-Edit config.yaml and replace /path/to/ with the actual paths on your system.
 The default micromamba environments directory is ~/micromamba/envs/.
-
 Example for a user named john:
 
     environments:
@@ -68,15 +70,22 @@ Example for a user named john:
 
 ### 4. Download databases
 
-Create the required directories:
+    bash download_databases.sh
+
+Or download manually:
 
     mkdir -p data/plsdb/meta data/indexes data/models
 
-PLSDB 2025 (plasmid sequences and metadata):
+PLSDB 2025 sequences:
 
-    # Download from https://plsdb.github.io/plsdb/
-    # Place sequences.fasta in data/plsdb/
-    # Place nuccore.csv, taxonomy.csv, amr.tsv, typing.csv in data/plsdb/meta/
+    wget -O data/plsdb/sequences.fasta \
+    https://ccb-microbe.cs.uni-saarland.de/plsdb2025/download_fasta
+
+PLSDB 2025 metadata:
+
+    wget -O data/plsdb/meta/meta.tar.gz \
+    https://ccb-microbe.cs.uni-saarland.de/plsdb2025/download_meta.tar.gz
+    tar -xzf data/plsdb/meta/meta.tar.gz -C data/plsdb/meta/
 
 CARD (antimicrobial resistance genes):
 
@@ -90,13 +99,15 @@ MIBiG 4.0 (biosynthetic gene clusters):
 
 CAZy (carbohydrate-active enzymes):
 
-    # Download from https://bcb.unl.edu/dbCAN2/download/
-    # Place cazy.fasta in data/indexes/
+    # Download from https://pro.unl.edu/dbCAN2/browse_download.php
+    # Download CAZyDB.07242025.fa, rename to cazy.fasta
+    # Place in data/indexes/
 
 RF model:
 
-    # Download from the PlasAnnotatoR releases page on GitHub
-    # Place rf_model.pkl in data/models/
+    wget -O data/models/rf_model.zip \
+    https://zenodo.org/records/20348780/files/rf_model.zip
+    unzip data/models/rf_model.zip -d data/models/
 
 ## Usage
 
