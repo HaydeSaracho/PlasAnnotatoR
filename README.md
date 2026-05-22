@@ -1,6 +1,6 @@
 # PlasAnnotatoR
 
-Ensemble-based plasmid classification and annotation pipeline for metagenomes and bacterial genomes.
+Ensemble-based plasmid classification and annotation pipeline for metagenomes and genomes.
 
 ## Overview
 
