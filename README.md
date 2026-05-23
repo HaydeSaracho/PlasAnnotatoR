@@ -37,12 +37,10 @@ Or create environments manually:
 PLASMe also requires cloning the tool and downloading its database:
 
     git clone https://github.com/HubertTang/PLASMe.git ~/PLASMe
-    conda activate plasme
-    cd ~/PLASMe && python PLASMe_db.py
 
-    # If PLASMe_db.py fails, download the database manually (12.4 GB):
-    # https://zenodo.org/record/8046934/files/DB.zip
-    # Uncompress and place the DB folder inside ~/PLASMe/
+    # Download the database manually (12.4 GB):
+    wget https://zenodo.org/record/8046934/files/DB.zip
+    unzip DB.zip -d ~/PLASMe/
 
 ### 3. Configure paths
 
