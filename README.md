@@ -31,66 +31,9 @@ are installed automatically by the installation script.
 
     bash configure.sh
 
-Or manually copy and edit the config file:
-
-    cp config.yaml.example config.yaml
-
-The default micromamba environments directory is ~/micromamba/envs/.
-Example for a user named john:
-
-    environments:
-      plasclass:
-        conda_base: /home/john/micromamba/envs/plasclass
-        python: /home/john/micromamba/envs/plasclass/bin/python
-        script: /home/john/micromamba/envs/plasclass/bin/classify_fasta.py
-      plasme:
-        conda_base: /home/john/miniconda3/envs/plasme
-        script: /home/john/PLASMe/PLASMe.py
-        database: /home/john/PLASMe/DB
-      plasmidhunter:
-        conda_base: /home/john/micromamba/envs/plasmidhunter
-        script: /home/john/micromamba/envs/plasmidhunter/bin/plasmidhunter
-
 ### 4. Download databases
 
     bash download_databases.sh
-
-Or download manually:
-
-    mkdir -p data/plsdb/meta data/indexes data/models
-
-PLSDB 2025 sequences:
-
-    wget -O data/plsdb/sequences.fasta \
-    https://ccb-microbe.cs.uni-saarland.de/plsdb2025/download_fasta
-
-PLSDB 2025 metadata:
-
-    wget -O data/plsdb/meta/meta.tar.gz \
-    https://ccb-microbe.cs.uni-saarland.de/plsdb2025/download_meta.tar.gz
-    tar -xzf data/plsdb/meta/meta.tar.gz -C data/plsdb/meta/
-
-CARD (antimicrobial resistance genes):
-
-    # Download from https://card.mcmaster.ca/download
-    # Place nucleotide_fasta_protein_homolog_model.fasta in data/indexes/
-
-MIBiG 4.0 (biosynthetic gene clusters):
-
-    # Download from https://mibig.secondarymetabolites.org/download
-    # Place mibig_4.0.fasta in data/indexes/
-
-CAZy (carbohydrate-active enzymes):
-
-    # Download from https://pro.unl.edu/dbCAN2/browse_download.php
-    # Download CAZyDB.07242025.fa, rename to cazy.fasta
-    # Place in data/indexes/
-
-RF model:
-
-    wget -O data/models/rf_model.zip \
-    https://zenodo.org/records/20348780/files/rf_model.zip
-    unzip data/models/rf_model.zip -d data/models/
 
 ## Usage
 
