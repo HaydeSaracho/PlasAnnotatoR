@@ -40,7 +40,9 @@ echo "Done."
 # MIBiG 4.0
 echo ""
 echo "[5/5] Downloading MIBiG 4.0..."
-wget -O data/indexes/mibig_4.0.fasta "https://dl.secondarymetabolites.org/mibig/mibig_nucleotide_seqs_4.0.fasta"
+wget -O data/indexes/mibig_4.0.zip "https://zenodo.org/records/20350302/files/mibig_4.0.zip"
+    unzip data/indexes/mibig_4.0.zip -d data/indexes/
+    rm data/indexes/mibig_4.0.zip
 echo "Done."
 
 echo ""
