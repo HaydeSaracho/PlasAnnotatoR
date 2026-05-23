@@ -11,3 +11,5 @@ temp/
 config.yaml
 config.yaml
 __pycache__/
+!test_data/
+!test_data/*.fasta
