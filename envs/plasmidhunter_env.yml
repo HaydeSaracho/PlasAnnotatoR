@@ -12,7 +12,7 @@ dependencies:
   - numpy=1.25.0
   - pandas
   - biopython
-  - setuptools
   - pip
   - pip:
+    - setuptools==69.5.1
     - plasmidhunter==1.4
