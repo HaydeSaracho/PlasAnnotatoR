@@ -4,6 +4,7 @@ channels:
   - conda-forge
   - bioconda
   - defaults
+  - nodefaults
 dependencies:
   - python=3.9
   - pytorch=1.11.0
@@ -14,6 +15,7 @@ dependencies:
   - blast=2.13.0
   - diamond=2.0.15
   - prodigal=2.6.3
+  - mkl=2024.0
   - pip
   - pip:
     - requests
