@@ -27,21 +27,6 @@ are installed automatically by the installation script.
 
     bash install.sh
 
-Or create environments manually:
-
-    micromamba env create -f envs/plasclass_env.yml
-    micromamba env create -f envs/plasmidhunter_env.yml
-    micromamba env create -f envs/plasannotator_env.yml
-    conda env create -f envs/plasme_env.yml
-
-PLASMe also requires cloning the tool and downloading its database:
-
-    git clone https://github.com/HubertTang/PLASMe.git ~/PLASMe
-
-    # Download the database manually (12.4 GB):
-    wget https://zenodo.org/record/8046934/files/DB.zip
-    unzip DB.zip -d ~/PLASMe/
-
 ### 3. Configure paths
 
     bash configure.sh
