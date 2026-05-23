@@ -9,7 +9,7 @@ mkdir -p data/plsdb/meta data/indexes data/models
 
 # RF model
 echo ""
-echo "[1/5] Downloading RF model..."
+echo "[1/6] Downloading RF model..."
 wget -O data/models/rf_model.zip "https://zenodo.org/records/20348780/files/rf_model.zip"
 unzip data/models/rf_model.zip -d data/models/
 rm data/models/rf_model.zip
@@ -17,13 +17,13 @@ echo "Done."
 
 # PLSDB 2025 sequences
 echo ""
-echo "[2/5] Downloading PLSDB 2025 sequences (~1 GB)..."
+echo "[2/6] Downloading PLSDB 2025 sequences (~7 GB)..."
 wget -O data/plsdb/sequences.fasta "https://ccb-microbe.cs.uni-saarland.de/plsdb2025/download_fasta"
 echo "Done."
 
 # PLSDB 2025 metadata
 echo ""
-echo "[3/5] Downloading PLSDB 2025 metadata..."
+echo "[3/6] Downloading PLSDB 2025 metadata (~3.4 GB)..."
 wget -O data/plsdb/meta/meta.tar.gz "https://ccb-microbe.cs.uni-saarland.de/plsdb2025/download_meta.tar.gz"
 tar -xzf data/plsdb/meta/meta.tar.gz -C data/plsdb/meta/
 rm data/plsdb/meta/meta.tar.gz
@@ -31,7 +31,7 @@ echo "Done."
 
 # CARD
 echo ""
-echo "[4/5] Downloading CARD..."
+echo "[4/6] Downloading CARD..."
 wget -O data/indexes/card.tar.bz2 "https://card.mcmaster.ca/latest/data"
 tar -xjf data/indexes/card.tar.bz2 -C data/indexes/
 rm data/indexes/card.tar.bz2
@@ -39,21 +39,34 @@ echo "Done."
 
 # MIBiG 4.0
 echo ""
-echo "[5/5] Downloading MIBiG 4.0..."
+echo "[5/6] Downloading MIBiG 4.0 nucleotide sequences..."
 wget -O data/indexes/mibig_4.0.zip "https://zenodo.org/records/20350302/files/mibig_4.0.zip"
-    unzip data/indexes/mibig_4.0.zip -d data/indexes/
-    rm data/indexes/mibig_4.0.zip
+unzip data/indexes/mibig_4.0.zip -d data/indexes/
+rm data/indexes/mibig_4.0.zip
+echo "Done."
+
+# CAZy
+echo ""
+echo "[6/6] Downloading CAZy database (CAZyDB.07242025, 2 GB)..."
+echo "Note: CAZy is updated regularly. This version corresponds to July 2025."
+echo "To use a more recent version, download manually from:"
+echo "https://pro.unl.edu/dbCAN2/browse_download.php"
+echo "and rename the file to cazy.fasta in data/indexes/"
+wget -O data/indexes/cazy.zip "https://zenodo.org/records/20350742/files/cazy.zip"
+unzip data/indexes/cazy.zip -d data/indexes/
+rm data/indexes/cazy.zip
+echo "Done."
+
+# PLASMe database
+echo ""
+echo "Downloading PLASMe database (~12.4 GB)..."
+wget -O ~/PLASMe/DB.zip "https://zenodo.org/records/8046934/files/DB.zip"
+unzip ~/PLASMe/DB.zip -d ~/PLASMe/
+rm ~/PLASMe/DB.zip
 echo "Done."
 
 echo ""
 echo "================================================"
-echo "  NOTE: CAZy database must be downloaded manually."
-echo "  Go to: https://pro.unl.edu/dbCAN2/browse_download.php"
-echo "  Download: CAZyDB.07242025.fa"
-echo "  Rename to: cazy.fasta"
-echo "  Place in: data/indexes/"
-echo "================================================"
-echo ""
 echo "  All databases downloaded successfully!"
 echo "  You can now run the pipeline:"
 echo "  micromamba activate plasannotator"
