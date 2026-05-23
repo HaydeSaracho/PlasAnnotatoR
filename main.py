@@ -1,5 +1,5 @@
 """
-PlasAnnotatoR v2.0 - Main pipeline
+PlasAnnotatoR v1.0 - Main pipeline
 Plasmid classification and annotation in metagenomes and bacterial genomes
 
 Usage:
@@ -22,9 +22,9 @@ def load_config(config_path="config.yaml"):
 def print_banner():
     print("""
 +-------------------------------------------------------+
-|           PlasAnnotatoR v2.0                          |
+|           PlasAnnotatoR v1.0                          |
 |   Ensemble-based plasmid classification & annotation  |
-|   RF(0.987) + PLASMe(0.975) + PlasmidHunter(0.918)   |
+|   RF(0.987) + PLASMe(0.975) + PlasmidHunter(0.918)    |
 |   + PlasClass(0.902)                                  |
 +-------------------------------------------------------+
     """)
@@ -32,7 +32,7 @@ def print_banner():
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="PlasAnnotatoR v2.0 - Plasmid classification and annotation"
+        description="PlasAnnotatoR v1.0 - Plasmid classification and annotation"
     )
     parser.add_argument("-i", "--input", required=True,
                         help="Input FASTA file (contigs)")

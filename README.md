@@ -45,7 +45,7 @@ Full pipeline:
 
     python main.py -i input.fasta -o results/ -t 8
 
-Skip annotation (classification only, much faster):
+Skip annotation (classification only, much faster, recommended for computers with less than 8 GB RAM):
 
     python main.py -i input.fasta -o results/ --skip-annotation -t 8
 
