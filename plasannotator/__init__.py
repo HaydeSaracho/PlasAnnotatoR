@@ -1,10 +1,5 @@
 """
-PlasAnnotatoR - Plasmid prediction, annotation and network analysis tool.
+PlasAnnotatoR - Plasmid classification and annotation pipeline.
 """
-
-__version__ = "0.1.0"
-__author__ = "Hayde"
-
-from plasannotator import config
-
-__all__ = ["__version__", "__author__", "config"]
+__version__ = "1.0"
+__author__ = "Hayde Saracho"
