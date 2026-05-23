@@ -1,16 +1,22 @@
 """
 Wrapper for PlasClass
-Environment: /home/bionfo/micromamba/envs/plasclass (Python 3.7 + scikit-learn 0.21.3)
+Environment: plasclass (Python 3.7 + scikit-learn 0.21.3)
 Script: classify_fasta.py
 Output: tab-separated file, no header
 """
 
 import subprocess
 import pandas as pd
+import yaml
 from pathlib import Path
 
 
-def run_plasclass(input_fasta: str, output_dir: str, threads: int = 8) -> pd.DataFrame:
+def load_config(config_path="config.yaml"):
+    with open(config_path, 'r') as f:
+        return yaml.safe_load(f)
+
+
+def run_plasclass(input_fasta: str, output_dir: str, threads: int = 8, config_path="config.yaml") -> pd.DataFrame:
     """
     Runs PlasClass on a FASTA file.
 
@@ -18,16 +24,18 @@ def run_plasclass(input_fasta: str, output_dir: str, threads: int = 8) -> pd.Dat
         input_fasta: path to input FASTA file
         output_dir: output directory
         threads: number of processes
+        config_path: path to config.yaml
 
     Returns:
         DataFrame with columns: contig_id, plasclass_score, plasclass_label
     """
+    config = load_config(config_path)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     output_file = output_dir / "plasclass_output"
 
-    python = "/home/bionfo/micromamba/envs/plasclass/bin/python"
-    script = "/home/bionfo/micromamba/envs/plasclass/bin/classify_fasta.py"
+    python = config['environments']['plasclass']['python']
+    script = config['environments']['plasclass']['script']
 
     cmd = [
         python, script,
@@ -56,7 +64,7 @@ def run_plasclass(input_fasta: str, output_dir: str, threads: int = 8) -> pd.Dat
 
 if __name__ == "__main__":
     df = run_plasclass(
-        input_fasta="/tmp/PlasClass/test/test.fa",
+        input_fasta="/tmp/test.fa",
         output_dir="/tmp/plasclass_test"
     )
     print(df.head())

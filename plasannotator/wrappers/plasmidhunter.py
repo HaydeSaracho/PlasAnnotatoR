@@ -1,16 +1,22 @@
 """
 Wrapper for PlasmidHunter
-Environment: /home/bionfo/micromamba/envs/plasmidhunter
+Environment: plasmidhunter (Python 3.10, scikit-learn 1.3.2)
 Script: plasmidhunter
 Output: directory with predictions.tsv
 """
 
 import subprocess
 import pandas as pd
+import yaml
 from pathlib import Path
 
 
-def run_plasmidhunter(input_fasta, output_dir, threads=8, threshold=0.5):
+def load_config(config_path="config.yaml"):
+    with open(config_path, 'r') as f:
+        return yaml.safe_load(f)
+
+
+def run_plasmidhunter(input_fasta, output_dir, threads=8, threshold=0.5, config_path="config.yaml"):
     """
     Runs PlasmidHunter on a FASTA file.
 
@@ -19,17 +25,19 @@ def run_plasmidhunter(input_fasta, output_dir, threads=8, threshold=0.5):
         output_dir: output directory
         threads: number of threads
         threshold: probability threshold (default=0.5)
+        config_path: path to config.yaml
 
     Returns:
         DataFrame with columns: contig_id, plasmidhunter_score, plasmidhunter_label
     """
+    config = load_config(config_path)
     output_dir = Path(output_dir)
 
     if output_dir.exists():
         import shutil
         shutil.rmtree(output_dir)
 
-    plasmidhunter = "/home/bionfo/micromamba/envs/plasmidhunter/bin/plasmidhunter"
+    plasmidhunter = config['environments']['plasmidhunter']['script']
 
     cmd = [
         plasmidhunter,
@@ -69,7 +77,7 @@ def run_plasmidhunter(input_fasta, output_dir, threads=8, threshold=0.5):
 
 if __name__ == "__main__":
     df = run_plasmidhunter(
-        input_fasta="/home/bionfo/PLASMe/test.fasta",
+        input_fasta="/tmp/test.fasta",
         output_dir="/tmp/plasmidhunter_test"
     )
     print(df.head(10))
