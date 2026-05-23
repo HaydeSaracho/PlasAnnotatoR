@@ -52,7 +52,7 @@ echo "Done."
 
 echo ""
 echo "[4/4] Installing PlasAnnotatoR environment..."
-micromamba env create -f envs/plasannotator_env.yml --yes
+micromamba env create -f envs/plasannotator_env.yml --yes --channel-priority flexible
 echo "Done."
 
 echo ""
