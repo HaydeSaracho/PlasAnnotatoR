@@ -59,17 +59,17 @@ Activate the main environment before running:
 
     micromamba activate plasannotator
 
+Run with the included test dataset:
+
+    python main.py -i test_data/test.fasta -o results/test -t 8
+
 Full pipeline:
 
     python main.py -i input.fasta -o results/ -t 8
 
-Skip annotation (classification only, much faster, recommended for computers with less than 8 GB RAM):
+Skip annotation (classification only, recommended for computers with less than 8 GB RAM):
 
     python main.py -i input.fasta -o results/ --skip-annotation -t 8
-
-Skip network visualization:
-
-    python main.py -i input.fasta -o results/ --skip-network -t 8
 
 ## Arguments
 
