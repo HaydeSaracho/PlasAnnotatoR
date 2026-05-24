@@ -23,17 +23,31 @@ are installed automatically by the installation script.
     git clone https://github.com/HaydeSaracho/PlasAnnotatoR.git
     cd PlasAnnotatoR
 
-### 2. Create environments
+### 2. Create environments (~30-60 min, requires ~5 GB disk)
+Creates four conda/micromamba environments:
+- **plasclass**: Python 3.7 + scikit-learn 0.21.3
+- **plasme**: Python 3.9 + PyTorch 1.11 (requires Miniconda)
+- **plasmidhunter**: Python 3.10 + BLAST + DIAMOND + Prodigal
+- **plasannotator**: Python 3.10 + all annotation tools
 
     bash install.sh
 
-### 3. Configure paths
+### 3. Configure paths (~1 min)
+Auto-detects environment paths and generates config.yaml.
 
     bash configure.sh
 
-### 4. Download databases
+### 4. Download databases (~2-4 hours, requires ~25 GB disk)
+Downloads all required databases:
+- RF model (43 MB, Zenodo)
+- PLSDB 2025 sequences (7 GB)
+- PLSDB 2025 metadata (3.4 GB)
+- CARD (4.4 MB)
+- MIBiG 4.0 (28 MB, Zenodo)
+- CAZy (1.2 GB, Zenodo)
+- PLASMe DB (12.4 GB, Zenodo)
 
-    bash download_databases.sh
+    bash download_databases.sh 
 
 ## Usage
 
