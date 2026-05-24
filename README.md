@@ -30,7 +30,9 @@ Creates four conda/micromamba environments:
 - **plasmidhunter**: Python 3.10 + BLAST + DIAMOND + Prodigal
 - **plasannotator**: Python 3.10 + all annotation tools
 
-    bash install.sh
+```bash
+bash install.sh
+```
 
 ### 3. Configure paths (~1 min)
 Auto-detects environment paths and generates config.yaml.
@@ -47,7 +49,9 @@ Downloads all required databases:
 - CAZy (1.2 GB, Zenodo)
 - PLASMe DB (12.4 GB, Zenodo)
 
-    bash download_databases.sh 
+```bash
+bash download_databases.sh 
+```
 
 ## Usage
 
