@@ -131,3 +131,7 @@ Trained on PLSDB 2025 (72,556 plasmids) and chromosomal fragments from 3,362 Ref
 ## Author
 
 Hayde Saracho
+
+## Co-author
+
+Daniel G. Kurth
