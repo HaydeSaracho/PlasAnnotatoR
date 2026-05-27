@@ -1,6 +1,8 @@
 """
 Layer 2: Annotation of plasmids detected by the ensemble
-Searches against CARD (AMR), MIBiG (BGCs), CAZy and PLSDB (identity + taxonomy)
+Searches against CARD (AMR), MIBiG (BGCs), CAZy, PLSDB (taxonomy)
+and PlasAnn functional databases (conjugation, virulence, backbone,
+stress response, DNA mobility, metal/biocide resistance, toxin-antitoxin)
 """
 
 import subprocess
@@ -58,11 +60,12 @@ def run_blast(query_fasta, db_fasta, output_file, threads=8, task="blastn", eval
     return output_file
 
 
-def parse_blast_results(blast_file, label):
+def parse_blast_results(blast_file, label, min_pident=70.0, min_coverage=70.0):
     """Parses BLAST output format 6."""
     cols = ["contig_id", "subject", "pident", "length", "evalue", "bitscore", "stitle"]
     try:
         df = pd.read_csv(blast_file, sep="\t", header=None, names=cols)
+        df = df[df["pident"] >= min_pident]
         df = df.sort_values("bitscore", ascending=False).drop_duplicates("contig_id")
         df = df.rename(columns={
             "subject": "{}_subject".format(label),
@@ -78,11 +81,7 @@ def parse_blast_results(blast_file, label):
 
 
 def annotate_with_plsdb(plasmid_fasta, config, output_dir, threads=8):
-    """
-    BLASTs against PLSDB and enriches with taxonomy.
-    Returns DataFrame with columns: contig_id, plsdb_subject, plsdb_pident,
-    TAXONOMY_order, TAXONOMY_family, TAXONOMY_genus, TAXONOMY_species
-    """
+    """BLASTs against PLSDB and enriches with taxonomy."""
     try:
         plsdb_fasta = Path("data/plsdb/sequences.fasta")
         plsdb_out = output_dir / "plsdb_blast.tsv"
@@ -94,11 +93,9 @@ def annotate_with_plsdb(plasmid_fasta, config, output_dir, threads=8):
             print("[Annotator] PLSDB: no hits found")
             return pd.DataFrame(columns=["contig_id"])
 
-        # Load taxonomy
         tax = pd.read_csv("data/plsdb/meta/taxonomy.csv")
         nuccore = pd.read_csv("data/plsdb/meta/nuccore.csv")
 
-        # Map NUCCORE_ACC to taxonomy via TAXONOMY_UID
         if "NUCCORE_ACC" in nuccore.columns and "TAXONOMY_UID" in nuccore.columns:
             blast_df = blast_df.merge(
                 nuccore[["NUCCORE_ACC", "TAXONOMY_UID"]].rename(
@@ -111,7 +108,8 @@ def annotate_with_plsdb(plasmid_fasta, config, output_dir, threads=8):
                 on="TAXONOMY_UID", how="left"
             )
 
-        print("[Annotator] PLSDB: {} hits with taxonomy".format(blast_df["plsdb_subject"].notna().sum()))
+        print("[Annotator] PLSDB: {} hits with taxonomy".format(
+            blast_df["plsdb_subject"].notna().sum()))
         return blast_df
 
     except Exception as e:
@@ -139,24 +137,23 @@ def predict_proteins(input_fasta, output_dir):
     return proteins_fasta
 
 
-def run_diamond(query_fasta, db_fasta, output_file, threads=8, evalue=1e-5):
-    """Runs DIAMOND blastp against CAZy."""
-    db_path = Path(str(db_fasta) + ".dmnd")
+def run_diamond(query_fasta, db_path, output_file, threads=8, evalue=1e-5):
+    """Runs DIAMOND blastp."""
+    dmnd_path = Path(str(db_path) + ".dmnd") if not str(db_path).endswith(".dmnd") else Path(db_path)
 
-    if not db_path.exists():
-        print("[Annotator] Building DIAMOND index for CAZy...")
+    if not dmnd_path.exists():
+        print("[Annotator] Building DIAMOND index for {}...".format(dmnd_path.name))
         subprocess.run([
             "diamond", "makedb",
-            "--in", str(db_fasta),
-            "--db", str(db_fasta),
-            "--threads", str(threads),
+            "--in", str(db_path),
+            "--db", str(db_path),
             "--quiet"
         ], check=True, capture_output=True)
 
     cmd = [
         "diamond", "blastp",
         "--query", str(query_fasta),
-        "--db", str(db_fasta),
+        "--db", str(dmnd_path),
         "--out", str(output_file),
         "--outfmt", "6", "qseqid", "sseqid", "pident", "length", "evalue", "bitscore", "stitle",
         "--evalue", str(evalue),
@@ -164,27 +161,82 @@ def run_diamond(query_fasta, db_fasta, output_file, threads=8, evalue=1e-5):
         "--max-target-seqs", "5",
         "--quiet"
     ]
-    print("[Annotator] Running DIAMOND blastp against CAZy...")
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
         print("[Annotator] Warning DIAMOND: {}".format(result.stderr[:200]))
     return output_file
 
 
+def parse_diamond_plasann(blast_file, label, min_pident=70.0):
+    """
+    Parses DIAMOND output against PlasAnn databases.
+    Subject ID format: ProteinID|GeneName|Product
+    Returns best hit gene name per contig.
+    """
+    cols = ["protein_id", "subject", "pident", "length", "evalue", "bitscore", "stitle"]
+    try:
+        df = pd.read_csv(blast_file, sep="\t", header=None, names=cols)
+        df = df[df["pident"] >= min_pident]
+        if df.empty:
+            return pd.DataFrame(columns=["contig_id"])
+
+        # Extract gene name from subject ID (format: ProteinID|GeneName|Product)
+        df["gene_name"] = df["subject"].str.split("|").str[1]
+        df["product"] = df["subject"].str.split("|").str[2].str.replace("_", " ")
+
+        # Map protein_id back to contig_id (Prodigal adds _1, _2, etc.)
+        df["contig_id"] = df["protein_id"].str.rsplit("_", n=1).str[0]
+
+        df = df.sort_values("bitscore", ascending=False).drop_duplicates("contig_id")
+        df = df.rename(columns={
+            "gene_name": "{}_gene".format(label),
+            "product": "{}_product".format(label),
+            "pident": "{}_pident".format(label),
+            "evalue": "{}_evalue".format(label)
+        })
+        return df[["contig_id", "{}_gene".format(label),
+                   "{}_product".format(label), "{}_pident".format(label),
+                   "{}_evalue".format(label)]]
+    except Exception as e:
+        print("[Annotator] Warning parsing {}: {}".format(label, e))
+        return pd.DataFrame(columns=["contig_id"])
+
+
+def run_plasann_annotation(proteins_fasta, output_dir, threads=8):
+    """
+    Runs DIAMOND blastp against all PlasAnn functional databases.
+    Returns dict of DataFrames keyed by category label.
+    """
+    plasann_dir = Path("data/plasann")
+    categories = {
+        "conjugation": "conjugation",
+        "virulence_defense": "virulence_defense",
+        "plasmid_backbone": "plasmid_backbone",
+        "stress_response": "stress_response",
+        "dna_mobility": "dna_mobility",
+        "metal_biocide": "metal_biocide",
+        "toxin_antitoxin": "toxin_antitoxin"
+    }
+
+    results = {}
+    for label, filename in categories.items():
+        db_path = plasann_dir / "plasann_{}.dmnd".format(filename)
+        if not db_path.exists():
+            print("[Annotator] PlasAnn DB not found: {}".format(db_path))
+            continue
+        out_file = output_dir / "plasann_{}.tsv".format(label)
+        print("[Annotator] Running DIAMOND against PlasAnn {}...".format(label))
+        run_diamond(proteins_fasta, db_path, out_file, threads=threads)
+        df = parse_diamond_plasann(out_file, label)
+        if not df.empty:
+            results[label] = df
+            print("[Annotator] PlasAnn {}: {} hits".format(label, len(df)))
+
+    return results
+
+
 def run_annotation(ensemble_df, input_fasta, output_dir, config_path="config.yaml", threads=8):
-    """
-    Runs the complete Layer 2 annotation.
-
-    Args:
-        ensemble_df: DataFrame with ensemble results
-        input_fasta: original input FASTA
-        output_dir: output directory
-        config_path: path to config.yaml
-        threads: number of threads
-
-    Returns:
-        DataFrame with complete annotations
-    """
+    """Runs the complete Layer 2 annotation."""
     config = load_config(config_path)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -211,11 +263,13 @@ def run_annotation(ensemble_df, input_fasta, output_dir, config_path="config.yam
     run_blast(plasmid_fasta, mibig_db, mibig_out, threads=threads, task="blastn")
     mibig_df = parse_blast_results(mibig_out, "mibig")
 
-    # DIAMOND blastp against CAZy
-    cazy_db = base / config['databases']['cazy']
+    # Predict proteins for DIAMOND searches
     proteins_fasta = predict_proteins(plasmid_fasta, output_dir)
+
+    # DIAMOND against CAZy
     cazy_df = pd.DataFrame(columns=["contig_id"])
     if proteins_fasta and proteins_fasta.exists():
+        cazy_db = base / config['databases']['cazy']
         cazy_out = output_dir / "cazy_diamond.tsv"
         run_diamond(proteins_fasta, cazy_db, cazy_out, threads=threads)
         cazy_df = parse_blast_results(cazy_out, "cazy")
@@ -223,10 +277,15 @@ def run_annotation(ensemble_df, input_fasta, output_dir, config_path="config.yam
             cazy_df["contig_id"] = cazy_df["contig_id"].str.rsplit("_", n=1).str[0]
             cazy_df = cazy_df.drop_duplicates("contig_id")
 
+    # DIAMOND against PlasAnn functional databases
+    plasann_results = {}
+    if proteins_fasta and proteins_fasta.exists():
+        plasann_results = run_plasann_annotation(proteins_fasta, output_dir, threads=threads)
+
     # BLAST against PLSDB + taxonomy
     plsdb_df = annotate_with_plsdb(plasmid_fasta, config, output_dir, threads=threads)
 
-    # Merge results
+    # Merge all results
     result = ensemble_df.copy()
     if not card_df.empty:
         result = result.merge(card_df, on="contig_id", how="left")
@@ -234,6 +293,9 @@ def run_annotation(ensemble_df, input_fasta, output_dir, config_path="config.yam
         result = result.merge(mibig_df, on="contig_id", how="left")
     if not cazy_df.empty and "cazy_subject" in cazy_df.columns:
         result = result.merge(cazy_df, on="contig_id", how="left")
+    for label, df in plasann_results.items():
+        if not df.empty and "contig_id" in df.columns:
+            result = result.merge(df, on="contig_id", how="left")
     if not plsdb_df.empty and "plsdb_subject" in plsdb_df.columns:
         result = result.merge(
             plsdb_df[["contig_id", "plsdb_subject", "plsdb_pident",
@@ -247,26 +309,3 @@ def run_annotation(ensemble_df, input_fasta, output_dir, config_path="config.yam
     print("[Annotator] Results saved to {}".format(output_file))
 
     return result
-
-
-if __name__ == "__main__":
-    import sys
-    sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-
-    test_fasta = "/home/bionfo/PLASMe/test.fasta"
-    real_ids = [rec.id for rec in SeqIO.parse(test_fasta, "fasta")][:2]
-    print("Test IDs: {}".format(real_ids))
-
-    test_df = pd.DataFrame({
-        "contig_id": real_ids,
-        "ensemble_score": [0.95, 0.87],
-        "ensemble_label": ["plasmid", "plasmid"]
-    })
-
-    result = run_annotation(
-        ensemble_df=test_df,
-        input_fasta=test_fasta,
-        output_dir="/tmp/annotation_test",
-        config_path="config.yaml"
-    )
-    print(result.head())
