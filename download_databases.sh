@@ -72,3 +72,11 @@ echo "  You can now run the pipeline:"
 echo "  micromamba activate plasannotator"
 echo "  python main.py -i input.fasta -o results/"
 echo "================================================"
+# PlasAnn functional databases
+echo ""
+echo "Downloading PlasAnn functional databases..."
+wget -O data/plasann/plasann_databases.zip "https://zenodo.org/records/20419016/files/plasann_databases.zip"
+mkdir -p data/plasann
+unzip data/plasann/plasann_databases.zip -d data/plasann/
+rm data/plasann/plasann_databases.zip
+echo "Done."
