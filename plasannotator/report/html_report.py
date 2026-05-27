@@ -228,7 +228,7 @@ def generate_report(annotation_df, network_html_path, output_dir, input_fasta=""
     <header>
         <div class="header-left">
             <h1>&#129516; PlasAnnotatoR</h1>
-            <p>Plasmid classification and annotation report</p>
+            <p>Plasmid classification, annotation and taxonomy report</p>
         </div>
         <div class="header-right">
             <div><strong>Input:</strong> {input}</div>
