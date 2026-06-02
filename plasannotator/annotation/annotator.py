@@ -211,7 +211,8 @@ def run_plasann_annotation(proteins_fasta, output_dir, threads=8):
     categories = {
         "conjugation": "conjugation",
         "virulence_defense": "virulence_defense",
-        "plasmid_backbone": "plasmid_backbone",
+        "replication": "replication",
+        "stability": "stability",
         "stress_response": "stress_response",
         "dna_mobility": "dna_mobility",
         "metal_biocide": "metal_biocide",

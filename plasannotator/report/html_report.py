@@ -22,13 +22,13 @@ def generate_report(annotation_df, network_html_path, output_dir, input_fasta=""
 
     # Classification
     # Core modules
-    n_replication = count("plasmid_backbone_gene")
+    n_replication = count("replication_gene")
     n_conjugation = count("conjugation_gene")
     n_mobility = count("dna_mobility_gene")
     n_transfer = int(plasmids[
         [c for c in ["conjugation_gene", "dna_mobility_gene"] if c in plasmids.columns]
     ].notna().any(axis=1).sum()) if n_plasmids > 0 else 0
-    n_stability = count("toxin_antitoxin_gene")
+    n_stability = count("stability_gene")
 
     # Accessory
     n_amr = count("card_subject")
@@ -73,11 +73,11 @@ def generate_report(annotation_df, network_html_path, output_dir, input_fasta=""
         amr = badge("card_subject", "card_annotation", "amr", "AMR")
         bgc = badge("mibig_subject", "mibig_annotation", "bgc", "BGC")
         cazy = badge("cazy_subject", "cazy_annotation", "cazy", "CAZy")
-        replication = plasann_badge("plasmid_backbone_gene", "plasmid_backbone_product", "replication", "REP")
+        replication = plasann_badge("replication_gene", "replication_product", "replication", "REP")
         transfer_conj = plasann_badge("conjugation_gene", "conjugation_product", "transfer", "CONJ")
         transfer_mob = plasann_badge("dna_mobility_gene", "dna_mobility_product", "transfer", "MOB")
         transfer = transfer_conj if transfer_conj != "-" else transfer_mob
-        stability = plasann_badge("toxin_antitoxin_gene", "toxin_antitoxin_product", "stability", "TA")
+        stability = plasann_badge("stability_gene", "stability_product", "stability", "TA")
         virulence = plasann_badge("virulence_defense_gene", "virulence_defense_product", "virulence", "VIR")
         metal = plasann_badge("metal_biocide_gene", "metal_biocide_product", "metal", "MET")
         stress = plasann_badge("stress_response_gene", "stress_response_product", "stress", "STR")
@@ -88,10 +88,10 @@ def generate_report(annotation_df, network_html_path, output_dir, input_fasta=""
             pd.notna(row.get("card_subject")),
             pd.notna(row.get("mibig_subject")),
             pd.notna(row.get("cazy_subject")),
-            pd.notna(row.get("plasmid_backbone_gene")),
+            pd.notna(row.get("replication_gene")),
             pd.notna(row.get("conjugation_gene")),
             pd.notna(row.get("dna_mobility_gene")),
-            pd.notna(row.get("toxin_antitoxin_gene")),
+            pd.notna(row.get("stability_gene")),
         ])
         row_class = "annotated" if has_annotation else ""
         row_bg = 'style="background:#f8f9fa;"' if i % 2 == 0 else ""
