@@ -16,24 +16,21 @@ def load_config(config_path="config.yaml"):
         return yaml.safe_load(f)
 
 
-def weighted_vote(dfs, weights):
+def weighted_vote(dfs, weights, threshold=0.5):
     """
     Combines predictions from multiple tools using weighted voting.
 
     Args:
         dfs: dict with {tool_name: DataFrame}
-              each DataFrame must have columns: contig_id, <tool>_score, <tool>_label
         weights: dict with {tool_name: weight}
+        threshold: ensemble score threshold (default: 0.5)
 
     Returns:
-        DataFrame with columns: contig_id, ensemble_score, ensemble_label,
-                                and individual scores for each tool
+        DataFrame with ensemble results
     """
-    # Normalize weights
     total_weight = sum(weights[tool] for tool in dfs.keys())
     norm_weights = {tool: w / total_weight for tool, w in weights.items() if tool in dfs}
 
-    # Merge all DataFrames by contig_id
     merged = None
     for tool, df in dfs.items():
         score_col = "{}_score".format(tool)
@@ -44,7 +41,6 @@ def weighted_vote(dfs, weights):
         else:
             merged = merged.merge(df_clean, on="contig_id", how="outer")
 
-    # Calculate weighted score
     ensemble_score = np.zeros(len(merged))
     for tool, weight in norm_weights.items():
         score_col = "{}_score".format(tool)
@@ -54,18 +50,20 @@ def weighted_vote(dfs, weights):
 
     merged["ensemble_score"] = ensemble_score
     merged["ensemble_label"] = merged["ensemble_score"].apply(
-        lambda x: "plasmid" if x >= 0.5 else "chromosome"
+        lambda x: "plasmid" if x >= threshold else "chromosome"
     )
 
     n_plasmid = (merged["ensemble_label"] == "plasmid").sum()
     n_chrom = (merged["ensemble_label"] == "chromosome").sum()
     print("[Ensemble] Total contigs: {}".format(len(merged)))
-    print("[Ensemble] Plasmids: {} | Chromosomes: {}".format(n_plasmid, n_chrom))
+    print("[Ensemble] Plasmids: {} | Chromosomes: {} | Threshold: {}".format(
+        n_plasmid, n_chrom, threshold))
 
     return merged
 
 
-def run_ensemble(input_fasta, output_dir, config_path="config.yaml", threads=8):
+def run_ensemble(input_fasta, output_dir, config_path="config.yaml",
+                 threads=8, threshold=0.5):
     """
     Runs all tools and combines results.
 
@@ -74,6 +72,7 @@ def run_ensemble(input_fasta, output_dir, config_path="config.yaml", threads=8):
         output_dir: output directory
         config_path: path to config.yaml
         threads: number of threads
+        threshold: ensemble score threshold (default: 0.5)
 
     Returns:
         DataFrame with ensemble results
@@ -90,7 +89,6 @@ def run_ensemble(input_fasta, output_dir, config_path="config.yaml", threads=8):
 
     results = {}
 
-    # PlasClass
     print("\n--- Running PlasClass ---")
     try:
         results['plasclass'] = run_plasclass(
@@ -101,7 +99,6 @@ def run_ensemble(input_fasta, output_dir, config_path="config.yaml", threads=8):
     except Exception as e:
         print("[PlasClass] Error: {}".format(e))
 
-    # PLASMe
     print("\n--- Running PLASMe ---")
     try:
         results['plasme'] = run_plasme(
@@ -112,7 +109,6 @@ def run_ensemble(input_fasta, output_dir, config_path="config.yaml", threads=8):
     except Exception as e:
         print("[PLASMe] Error: {}".format(e))
 
-    # PlasmidHunter
     print("\n--- Running PlasmidHunter ---")
     try:
         results['plasmidhunter'] = run_plasmidhunter(
@@ -123,7 +119,6 @@ def run_ensemble(input_fasta, output_dir, config_path="config.yaml", threads=8):
     except Exception as e:
         print("[PlasmidHunter] Error: {}".format(e))
 
-    # Custom RF model
     print("\n--- Running RF model ---")
     try:
         results['rf_model'] = run_rf_model(
@@ -133,22 +128,11 @@ def run_ensemble(input_fasta, output_dir, config_path="config.yaml", threads=8):
     except Exception as e:
         print("[RF] Error: {}".format(e))
 
-    # Weighted voting
     print("\n--- Weighted voting ---")
-    ensemble_df = weighted_vote(results, weights)
+    ensemble_df = weighted_vote(results, weights, threshold=threshold)
 
-    # Save results
     output_file = output_dir / "ensemble_results.tsv"
     ensemble_df.to_csv(output_file, sep='\t', index=False)
     print("\n[Ensemble] Results saved to {}".format(output_file))
 
     return ensemble_df
-
-
-if __name__ == "__main__":
-    df = run_ensemble(
-        input_fasta="/home/bionfo/PLASMe/test.fasta",
-        output_dir="/tmp/ensemble_test",
-        config_path="config.yaml"
-    )
-    print(df.head(10))

@@ -42,6 +42,8 @@ def parse_args():
                         help="Number of threads (default: 8)")
     parser.add_argument("-c", "--config", default="config.yaml",
                         help="Config file (default: config.yaml)")
+    parser.add_argument("--threshold", type=float, default=0.5,
+                        help="Ensemble score threshold for plasmid classification (default: 0.5)")
     parser.add_argument("--skip-annotation", action="store_true",
                         help="Skip annotation layer (faster)")
     parser.add_argument("--skip-network", action="store_true",
@@ -50,7 +52,7 @@ def parse_args():
 
 
 def run_pipeline(input_fasta, output_dir, threads=8, config_path="config.yaml",
-                 skip_annotation=False, skip_network=False):
+                 skip_annotation=False, skip_network=False, threshold=0.5):
     """
     Runs the complete PlasAnnotatoR pipeline.
 
@@ -61,6 +63,7 @@ def run_pipeline(input_fasta, output_dir, threads=8, config_path="config.yaml",
         config_path: path to config.yaml
         skip_annotation: skip Layer 2 annotation
         skip_network: skip Layer 3 network
+        threshold: ensemble score threshold (default: 0.5)
 
     Returns:
         path to HTML report
@@ -77,7 +80,8 @@ def run_pipeline(input_fasta, output_dir, threads=8, config_path="config.yaml",
         input_fasta=input_fasta,
         output_dir=str(output_dir / "ensemble"),
         config_path=config_path,
-        threads=threads
+        threads=threads,
+        threshold=threshold
     )
 
     n_plasmids = (ensemble_df["ensemble_label"] == "plasmid").sum()
@@ -151,5 +155,6 @@ if __name__ == "__main__":
         threads=args.threads,
         config_path=args.config,
         skip_annotation=args.skip_annotation,
-        skip_network=args.skip_network
+        skip_network=args.skip_network,
+        threshold=args.threshold
     )
