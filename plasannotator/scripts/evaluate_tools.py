@@ -1,6 +1,7 @@
 """
-Evaluación de PlasClass, PLASMe y PlasmidHunter en el test set común.
-Usa test_set.pkl y test_set.fasta ya generados por train_rf_model.py
+Evaluación de PlasClass, PLASMe, PlasmidHunter y RF model en el benchmark dataset.
+Dataset independiente: 487 plásmidos de RefSeq/PlasmidScope + 487 cromosomas de Chromosome level.
+Ground truth conocido en data/benchmark_plasmids/ground_truth.tsv
 """
 
 import pickle
@@ -9,10 +10,12 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from sklearn.metrics import roc_auc_score
+from Bio import SeqIO
 
 # Rutas
 BASE = Path("/home/bionfo/Escritorio/Hayde/PlasAnnotatoR")
-TEST_FASTA = BASE / "data/models/test_set.fasta"
+TEST_FASTA = BASE / "data/benchmark_plasmids/benchmark_974.fasta"
+GROUND_TRUTH = BASE / "data/benchmark_plasmids/ground_truth.tsv"
 TEST_PKL = BASE / "data/models/test_set.pkl"
 RESULTS_DIR = BASE / "data/models/tool_evaluations"
 REPORT_OUTPUT = BASE / "data/models/evaluation_report.txt"
@@ -21,21 +24,33 @@ RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def load_test_set():
-    """Carga test set ya generado por train_rf_model.py."""
-    print("Cargando test set...")
-    with open(TEST_PKL, 'rb') as f:
-        data = pickle.load(f)
-    y_test = data['y_test']
-    y_prob_rf = data['y_prob_rf']
-    rf_auc = roc_auc_score(y_test, y_prob_rf)
-    print("Test set: {} secuencias".format(len(y_test)))
+    print("Cargando ground truth...")
+    gt = pd.read_csv(GROUND_TRUTH, sep='\t')
+    gt['true_binary'] = (gt['true_label'] == 'plasmid').astype(int)
+    y_test = gt['true_binary'].values
+    contig_ids = gt['contig_id'].tolist()
+    print("Benchmark dataset: {} secuencias".format(len(y_test)))
+    print("Plasmids: {} | Chromosomes: {}".format(
+        sum(y_test), len(y_test) - sum(y_test)))
+
+    # RF model - correr sobre el benchmark dataset
+    print("Evaluando RF model...")
+    from plasannotator.wrappers.rf_model import run_rf_model
+    import sys
+    sys.path.insert(0, str(BASE))
+    rf_df = run_rf_model(
+        input_fasta=str(TEST_FASTA),
+        model_path=str(BASE / "data/models/rf_model.pkl")
+    )
+    rf_df = rf_df.set_index('contig_id')
+    rf_scores = [float(rf_df.loc[cid, 'rf_model_score']) if cid in rf_df.index else 0.0 for cid in contig_ids]
+    rf_auc = roc_auc_score(y_test, rf_scores)
     print("RF AUC: {:.4f}".format(rf_auc))
-    return y_test, y_prob_rf, rf_auc
+
+    return y_test, rf_scores, rf_auc, contig_ids
 
 
 def get_contig_order():
-    """Obtiene el orden de contigs del test_set.fasta."""
-    from Bio import SeqIO
     print("Leyendo orden de contigs...")
     ids = [rec.id for rec in SeqIO.parse(str(TEST_FASTA), "fasta")]
     print("Contigs en FASTA: {}".format(len(ids)))
@@ -43,7 +58,7 @@ def get_contig_order():
 
 
 def evaluate_plasclass(y_test, contig_ids):
-    """Corre PlasClass sobre test_set.fasta y calcula AUC."""
+    """Corre PlasClass sobre el benchmark dataset y calcula AUC."""
     print("\n--- Evaluando PlasClass ---")
     output = RESULTS_DIR / "plasclass_output"
 
@@ -69,7 +84,6 @@ def evaluate_plasclass(y_test, contig_ids):
 
 
 def evaluate_plasmidhunter(y_test, contig_ids):
-    """Corre PlasmidHunter sobre test_set.fasta y calcula AUC."""
     print("\n--- Evaluando PlasmidHunter ---")
     output_dir = RESULTS_DIR / "plasmidhunter_output"
 
@@ -102,7 +116,6 @@ def evaluate_plasmidhunter(y_test, contig_ids):
 
 
 def evaluate_plasme(y_test, contig_ids):
-    """Corre PLASMe sobre test_set.fasta y calcula AUC."""
     print("\n--- Evaluando PLASMe ---")
     output_file = RESULTS_DIR / "plasme_output"
     report_file = RESULTS_DIR / "plasme_output_report.csv"
@@ -112,7 +125,7 @@ def evaluate_plasme(y_test, contig_ids):
     if report_file.exists():
         report_file.unlink()
 
-    python = "/home/bionfo/anaconda3/envs/plasme/bin/python"
+    python = "/home/bionfo/miniforge3/envs/plasme/bin/python"
     script = "/home/bionfo/PLASMe/PLASMe.py"
     database = "/home/bionfo/PLASMe/DB"
     cmd = [python, script, str(TEST_FASTA), str(output_file),
@@ -137,8 +150,7 @@ def evaluate_plasme(y_test, contig_ids):
 
 
 def main():
-    y_test, y_prob_rf, rf_auc = load_test_set()
-    contig_ids = get_contig_order()
+    y_test, rf_scores, rf_auc, contig_ids = load_test_set()
 
     aucs = {'rf_model': rf_auc}
 
@@ -156,7 +168,7 @@ def main():
 
     print("\n=== RESUMEN AUC ===")
     with open(REPORT_OUTPUT, 'w') as f:
-        f.write("=== AUC en test set comun ===\n\n")
+        f.write("=== AUC en benchmark dataset independiente (n=974) ===\n\n")
         for tool, auc in sorted(aucs.items(), key=lambda x: x[1], reverse=True):
             line = "{}: {:.4f}".format(tool, auc)
             print(line)

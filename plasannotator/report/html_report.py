@@ -363,7 +363,7 @@ def generate_report(annotation_df, network_html_path, output_dir, input_fasta=""
     </div>
     <footer>
         <strong>PlasAnnotatoR</strong> &nbsp;|&nbsp;
-        Ensemble: RF(0.9872) + PLASMe(0.9748) + PlasmidHunter(0.9178) + PlasClass(0.9017)
+        Ensemble: RF(0.9899) + PLASMe(0.9519) + PlasmidHunter(0.9702) + PlasClass(0.9552)
     </footer>
 </body>
 </html>""".format(

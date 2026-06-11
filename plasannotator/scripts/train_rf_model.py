@@ -1,8 +1,8 @@
 """
 Script de entrenamiento del modelo Random Forest para PlasAnnotatoR v2.0
-Datos positivos: PLSDB 2025 (plásmidos)
-Datos negativos: fragmentos cromosómicos de RefSeq
-Features: frecuencias de 5-mers
+Datos positivos: plásmidos PLSDB 2025 (todas las secuencias, sin filtro de tamaño)
+Datos negativos: fragmentos cromosómicos de RefSeq (Chromosome level)
+Features: frecuencias de 5-mers canonicos
 """
 
 import pickle
@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 # Rutas
 BASE = Path("/home/bionfo/Escritorio/Hayde/PlasAnnotatoR")
 PLASMIDS_FASTA = BASE / "data/plsdb/sequences.fasta"
-CHROMOSOMES_DIR = BASE / "data/chromosomes"
+CHROMOSOMES_DIR = BASE / "data/chromosomes_new"
 MODEL_OUTPUT = BASE / "data/models/rf_model.pkl"
 TEST_SET_OUTPUT = BASE / "data/models/test_set.pkl"
 TEST_FASTA_OUTPUT = BASE / "data/models/test_set.fasta"
@@ -35,7 +35,6 @@ N_JOBS = 8
 
 # Rangos de fragmentos cromosómicos (pb)
 FRAGMENT_SIZES = [
-    (500, 1000),
     (1000, 5000),
     (5000, 50000),
     (50000, 500000)
@@ -74,20 +73,19 @@ def fragment_sequence(sequence, min_len, max_len):
     return sequence[start:start + frag_len]
 
 
-def load_plasmids(fasta_path, max_seqs=None):
+def load_plasmids(fasta_path):
+    """Carga todos los plásmidos de PLSDB 2025 sin ningún filtro de tamaño."""
     log.info("Cargando plasmidos de {}".format(fasta_path))
     ids = []
     sequences = []
-    for i, rec in enumerate(SeqIO.parse(str(fasta_path), "fasta")):
+    for rec in SeqIO.parse(str(fasta_path), "fasta"):
         ids.append(rec.id)
         sequences.append(str(rec.seq))
-        if max_seqs and i >= max_seqs:
-            break
     log.info("Plasmidos cargados: {}".format(len(sequences)))
     return ids, sequences
 
 
-def load_chromosomes(chromosomes_dir, frags_per_file=10):
+def load_chromosomes(chromosomes_dir, frags_per_file=150):
     log.info("Cargando cromosomas de {}".format(chromosomes_dir))
     ids = []
     fragments = []
@@ -145,35 +143,31 @@ def train_model(X, y, all_ids, all_seqs):
     )
     clf.fit(X_train, y_train)
 
-    # Evaluacion
-    y_prob = clf.predict_proba(X_test)[:, 1]
-    y_pred = clf.predict(X_test)
-    auc = roc_auc_score(y_test, y_prob)
-    report = classification_report(y_test, y_pred, target_names=['chromosome', 'plasmid'])
+    # Evaluación en test set completo
+    y_prob_full = clf.predict_proba(X_test)[:, 1]
+    auc_full = roc_auc_score(y_test, y_prob_full)
+    log.info("AUC en test set completo: {:.4f}".format(auc_full))
+    log.info("\n{}".format(classification_report(y_test, clf.predict(X_test),
+             target_names=['chromosome', 'plasmid'])))
 
-    log.info("AUC en test: {:.4f}".format(auc))
-    log.info("\n{}".format(report))
-
-    # Guardar test set con IDs únicos
     log.info("Guardando test set...")
     test_set = {
         'X_test': X_test,
         'y_test': y_test,
-        'y_prob_rf': y_prob,
+        'y_prob_rf': y_prob_full,
         'ids_test': ids_test
     }
     with open(TEST_SET_OUTPUT, 'wb') as f:
         pickle.dump(test_set, f)
     log.info("Test set guardado en {}".format(TEST_SET_OUTPUT))
 
-    # Guardar FASTA del test set con secuencias reales
     log.info("Guardando test set FASTA...")
     with open(TEST_FASTA_OUTPUT, 'w') as f:
         for seq_id, seq in zip(ids_test, seqs_test):
             f.write(">{}\n{}\n".format(seq_id, seq))
     log.info("Test set FASTA guardado en {}".format(TEST_FASTA_OUTPUT))
 
-    return clf, auc, report
+    return clf, auc_full
 
 
 def main():
@@ -183,12 +177,11 @@ def main():
     MODEL_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
 
     plasmid_ids, plasmids = load_plasmids(PLASMIDS_FASTA)
-    chrom_ids, chromosomes = load_chromosomes(CHROMOSOMES_DIR, frags_per_file=10)
+    chrom_ids, chromosomes = load_chromosomes(CHROMOSOMES_DIR, frags_per_file=150)
 
     n = min(len(plasmids), len(chromosomes))
     log.info("Balanceando: {} plasmidos vs {} cromosomas".format(n, n))
 
-    # Balancear manteniendo IDs
     plas_idx = random.sample(range(len(plasmids)), n)
     chrom_idx = random.sample(range(len(chromosomes)), n)
 
@@ -207,15 +200,14 @@ def main():
 
     log.info("Dataset total: {} secuencias, {} features".format(X.shape[0], X.shape[1]))
 
-    clf, auc, report = train_model(X, y, all_ids, all_seqs)
+    clf, auc = train_model(X, y, all_ids, all_seqs)
 
     with open(MODEL_OUTPUT, 'wb') as f:
         pickle.dump(clf, f)
     log.info("Modelo guardado en {}".format(MODEL_OUTPUT))
 
     with open(REPORT_OUTPUT, 'w') as f:
-        f.write("AUC: {:.4f}\n\n".format(auc))
-        f.write(report)
+        f.write("AUC en test set completo: {:.4f}\n".format(auc))
     log.info("Reporte guardado en {}".format(REPORT_OUTPUT))
 
 
