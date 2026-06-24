@@ -24,13 +24,13 @@ def print_banner():
 +-------------------------------------------------------+
 |           PlasAnnotatoR v1.0                          |
 |   Ensemble-based plasmid classification & annotation  |
-|   RF(0.987) + PLASMe(0.975) + PlasmidHunter(0.918)    |
-|   + PlasClass(0.902)                                  |
+|   RF(0.881) + PLASMe(0.890) + PlasmidHunter(0.790)    |
+|   + PlasClass(0.842)                                  |
 +-------------------------------------------------------+
     """)
 
 
-def parse_args():
+def parse_args(default_threshold=0.6):
     parser = argparse.ArgumentParser(
         description="PlasAnnotatoR v1.0 - Plasmid classification and annotation"
     )
@@ -42,8 +42,8 @@ def parse_args():
                         help="Number of threads (default: 8)")
     parser.add_argument("-c", "--config", default="config.yaml",
                         help="Config file (default: config.yaml)")
-    parser.add_argument("--threshold", type=float, default=0.5,
-                        help="Ensemble score threshold for plasmid classification (default: 0.5)")
+    parser.add_argument("--threshold", type=float, default=default_threshold,
+                        help="Ensemble score threshold for plasmid classification (default: {})".format(default_threshold))
     parser.add_argument("--skip-annotation", action="store_true",
                         help="Skip annotation layer (faster)")
     parser.add_argument("--skip-network", action="store_true",
@@ -52,7 +52,7 @@ def parse_args():
 
 
 def run_pipeline(input_fasta, output_dir, threads=8, config_path="config.yaml",
-                 skip_annotation=False, skip_network=False, threshold=0.5):
+                 skip_annotation=False, skip_network=False, threshold=0.6):
     """
     Runs the complete PlasAnnotatoR pipeline.
 
@@ -63,7 +63,7 @@ def run_pipeline(input_fasta, output_dir, threads=8, config_path="config.yaml",
         config_path: path to config.yaml
         skip_annotation: skip Layer 2 annotation
         skip_network: skip Layer 3 network
-        threshold: ensemble score threshold (default: 0.5)
+        threshold: ensemble score threshold (default: read from config.yaml)
 
     Returns:
         path to HTML report
@@ -139,14 +139,24 @@ def run_pipeline(input_fasta, output_dir, threads=8, config_path="config.yaml",
 
 if __name__ == "__main__":
     print_banner()
-    args = parse_args()
+
+    # Load config first to get default threshold
+    config_path = "config.yaml"
+    for i, arg in enumerate(sys.argv):
+        if arg in ("-c", "--config") and i + 1 < len(sys.argv):
+            config_path = sys.argv[i + 1]
+
+    if not Path(config_path).exists():
+        print("ERROR: Config file not found: {}".format(config_path))
+        sys.exit(1)
+
+    config = load_config(config_path)
+    default_threshold = config.get("ensemble", {}).get("final_threshold", 0.6)
+
+    args = parse_args(default_threshold=default_threshold)
 
     if not Path(args.input).exists():
         print("ERROR: Input file not found: {}".format(args.input))
-        sys.exit(1)
-
-    if not Path(args.config).exists():
-        print("ERROR: Config file not found: {}".format(args.config))
         sys.exit(1)
 
     run_pipeline(
