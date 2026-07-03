@@ -41,16 +41,17 @@ Auto-detects environment paths and generates config.yaml.
 
 ### 4. Download databases (~2-4 hours, requires ~25 GB disk)
 Downloads all required databases:
-- RF model (43 MB, Zenodo)
+- RF model (139 MB, Zenodo DOI: 10.5281/zenodo.20348779)
+- PlasAnn functional databases (Zenodo DOI: 10.5281/zenodo.20501577)
 - PLSDB 2025 sequences (7 GB)
 - PLSDB 2025 metadata (3.4 GB)
 - CARD (4.4 MB)
-- MIBiG 4.0 (28 MB, Zenodo)
-- CAZy (1.2 GB, Zenodo)
+- MIBiG 4.0 (28 MB, Zenodo DOI: 10.5281/zenodo.20350302)
+- CAZy (1.2 GB, Zenodo DOI: 10.5281/zenodo.20350742)
 - PLASMe DB (12.4 GB, Zenodo)
 
 ```bash
-bash download_databases.sh 
+bash download_databases.sh
 ```
 
 ## Usage
