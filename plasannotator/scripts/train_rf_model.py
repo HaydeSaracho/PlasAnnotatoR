@@ -1,7 +1,7 @@
 """
 Script de entrenamiento del modelo Random Forest para PlasAnnotatoR v2.0
 Datos positivos: plásmidos PLSDB 2025 (todas las secuencias, sin filtro de tamaño)
-Datos negativos: fragmentos cromosómicos de RefSeq (Chromosome level)
+Datos negativos: fragmentos cromosómicos de RefSeq (Chromosome level) + secuencias de fagos de RefSeq
 Features: frecuencias de 5-mers canonicos
 """
 
@@ -22,7 +22,8 @@ log = logging.getLogger(__name__)
 # Rutas
 BASE = Path("/home/bionfo/Escritorio/Hayde/PlasAnnotatoR")
 PLASMIDS_FASTA = BASE / "data/plsdb/sequences.fasta"
-CHROMOSOMES_DIR = BASE / "data/chromosomes_new"
+CHROMOSOMES_DIR = BASE / "data/chromosomes"
+PHAGES_FASTA = BASE / "data/phages.fasta"
 MODEL_OUTPUT = BASE / "data/models/rf_model.pkl"
 TEST_SET_OUTPUT = BASE / "data/models/test_set.pkl"
 TEST_FASTA_OUTPUT = BASE / "data/models/test_set.fasta"
@@ -116,6 +117,18 @@ def load_chromosomes(chromosomes_dir, frags_per_file=150):
     return ids, fragments
 
 
+def load_phages(fasta_path):
+    """Carga secuencias de fagos de RefSeq."""
+    log.info("Cargando fagos de {}".format(fasta_path))
+    ids = []
+    sequences = []
+    for rec in SeqIO.parse(str(fasta_path), "fasta"):
+        ids.append(rec.id)
+        sequences.append(str(rec.seq))
+    log.info("Fagos cargados: {}".format(len(sequences)))
+    return ids, sequences
+
+
 def compute_features(sequences, label, desc=""):
     log.info("Calculando features para {} {} secuencias...".format(len(sequences), desc))
     X = np.array([sequence_to_vector(seq) for seq in sequences])
@@ -178,9 +191,15 @@ def main():
 
     plasmid_ids, plasmids = load_plasmids(PLASMIDS_FASTA)
     chrom_ids, chromosomes = load_chromosomes(CHROMOSOMES_DIR, frags_per_file=150)
+    phage_ids, phages = load_phages(PHAGES_FASTA)
+
+    # Combinar cromosomas y fagos como negativos
+    chrom_ids = chrom_ids + phage_ids
+    chromosomes = chromosomes + phages
+    log.info("Total negativos (cromosomas + fagos): {}".format(len(chromosomes)))
 
     n = min(len(plasmids), len(chromosomes))
-    log.info("Balanceando: {} plasmidos vs {} cromosomas".format(n, n))
+    log.info("Balanceando: {} plasmidos vs {} negativos".format(n, n))
 
     plas_idx = random.sample(range(len(plasmids)), n)
     chrom_idx = random.sample(range(len(chromosomes)), n)
@@ -191,7 +210,7 @@ def main():
     chrom_ids = [chrom_ids[i] for i in chrom_idx]
 
     X_plas, y_plas = compute_features(plasmids, label=1, desc="plasmidos")
-    X_chrom, y_chrom = compute_features(chromosomes, label=0, desc="cromosomas")
+    X_chrom, y_chrom = compute_features(chromosomes, label=0, desc="negativos")
 
     X = np.vstack([X_plas, X_chrom])
     y = np.concatenate([y_plas, y_chrom])

@@ -33,7 +33,7 @@ ensemble:
     plasme: 0.9748
     plasmidhunter: 0.9178
     rf_model: 0.9872
-  final_threshold: 0.5
+  final_threshold: 0.6
 
 databases:
   # All paths relative to PlasAnnotatoR root directory

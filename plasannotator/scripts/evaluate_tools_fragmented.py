@@ -7,10 +7,10 @@ from Bio import SeqIO
 
 # Rutas
 BASE = Path("/home/bionfo/Escritorio/Hayde/PlasAnnotatoR")
-TEST_FASTA = BASE / "data/final/validation_full_length.fasta"
-GROUND_TRUTH = BASE / "data/final/validation_full_length_ground_truth.tsv"
-RESULTS_DIR = BASE / "data/models/tool_evaluations_full_length"
-REPORT_OUTPUT = BASE / "data/models/evaluation_report_full_length.txt"
+TEST_FASTA = BASE / "data/final/validation_fragmented.fasta"
+GROUND_TRUTH = BASE / "data/final/validation_fragmented_ground_truth.tsv"
+RESULTS_DIR = BASE / "data/models/tool_evaluations_fragmented"
+REPORT_OUTPUT = BASE / "data/models/evaluation_report_fragmented.txt"
 
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -140,7 +140,7 @@ def main():
 
     print("\n=== RESUMEN AUC ===")
     with open(REPORT_OUTPUT, 'w') as f:
-        f.write("=== AUC en validation dataset full-length (n=5365) ===\n\n")
+        f.write("=== AUC en validation dataset fragmented (n=5365) ===\n\n")
         for tool, auc in sorted(aucs.items(), key=lambda x: x[1], reverse=True):
             line = "{}: {:.4f}".format(tool, auc)
             print(line)
