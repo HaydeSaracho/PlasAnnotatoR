@@ -39,10 +39,8 @@ else
     fi
     echo "Done."
     echo ""
-    echo "  NOTE: PLASMe database must be downloaded manually (12.4 GB)."
-    echo "  Download DB.zip from:"
-    echo "  https://zenodo.org/record/8046934/files/DB.zip"
-    echo "  and place the uncompressed DB folder inside ~/PLASMe/"
+    echo "  NOTE: PLASMe database (12.4 GB) will be downloaded automatically"
+    echo "  by bash download_databases.sh in the next step."
 fi
 
 echo ""
