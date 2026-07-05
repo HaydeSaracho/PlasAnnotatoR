@@ -1,7 +1,8 @@
 """
 Wrapper for custom Random Forest model
-Model: data/models/rf_model.pkl (AUC 0.9872)
-Trained on chromosomal fragments and plasmids from PLSDB 2025
+Model: data/models/rf_model.pkl (AUC 0.9913 on internal test set)
+Trained on plasmids from PLSDB 2025, chromosomal fragments from RefSeq
+and bacteriophage sequences from NCBI RefSeq viral
 """
 
 import pickle

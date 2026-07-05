@@ -1,7 +1,8 @@
 """
 Weighted voting module for PlasAnnotatoR v2.0
 Combines predictions from PlasClass, PLASMe, PlasmidHunter and custom RF model
-Weights based on AUC of each tool on a common test set
+Weights based on AUC of each tool on independent validation datasets
+(full-length sequences and fragmented contigs)
 """
 
 import pandas as pd
@@ -16,14 +17,14 @@ def load_config(config_path="config.yaml"):
         return yaml.safe_load(f)
 
 
-def weighted_vote(dfs, weights, threshold=0.5):
+def weighted_vote(dfs, weights, threshold=0.6):
     """
     Combines predictions from multiple tools using weighted voting.
 
     Args:
         dfs: dict with {tool_name: DataFrame}
         weights: dict with {tool_name: weight}
-        threshold: ensemble score threshold (default: 0.5)
+        threshold: ensemble score threshold (default: 0.6)
 
     Returns:
         DataFrame with ensemble results
@@ -63,7 +64,7 @@ def weighted_vote(dfs, weights, threshold=0.5):
 
 
 def run_ensemble(input_fasta, output_dir, config_path="config.yaml",
-                 threads=8, threshold=0.5):
+                 threads=8, threshold=0.6):
     """
     Runs all tools and combines results.
 
@@ -72,7 +73,7 @@ def run_ensemble(input_fasta, output_dir, config_path="config.yaml",
         output_dir: output directory
         config_path: path to config.yaml
         threads: number of threads
-        threshold: ensemble score threshold (default: 0.5)
+        threshold: ensemble score threshold (default: 0.6)
 
     Returns:
         DataFrame with ensemble results

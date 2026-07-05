@@ -31,7 +31,7 @@ def extract_plasmid_fasta(ensemble_df, input_fasta, output_fasta):
 
 
 def run_blast(query_fasta, db_fasta, output_file, threads=8, task="blastn", evalue=1e-5):
-    """Runs BLAST against a database."""
+    """Runs BLAST against a database. Output includes qlen for coverage calculation."""
     db_path = Path(db_fasta)
     db_index = Path(str(db_fasta) + ".nin") if task == "blastn" else Path(str(db_fasta) + ".pin")
 
@@ -48,7 +48,7 @@ def run_blast(query_fasta, db_fasta, output_file, threads=8, task="blastn", eval
         "-query", str(query_fasta),
         "-db", str(db_fasta),
         "-out", str(output_file),
-        "-outfmt", "6 qseqid sseqid pident length evalue bitscore stitle",
+        "-outfmt", "6 qseqid sseqid pident length qlen evalue bitscore stitle",
         "-evalue", str(evalue),
         "-num_threads", str(threads),
         "-max_target_seqs", "5"
@@ -61,11 +61,16 @@ def run_blast(query_fasta, db_fasta, output_file, threads=8, task="blastn", eval
 
 
 def parse_blast_results(blast_file, label, min_pident=70.0, min_coverage=70.0):
-    """Parses BLAST output format 6."""
-    cols = ["contig_id", "subject", "pident", "length", "evalue", "bitscore", "stitle"]
+    """
+    Parses BLAST output format 6 (qseqid sseqid pident length qlen evalue bitscore stitle).
+    Filters by percent identity and query coverage (alignment length / query length * 100).
+    """
+    cols = ["contig_id", "subject", "pident", "length", "qlen", "evalue", "bitscore", "stitle"]
     try:
         df = pd.read_csv(blast_file, sep="\t", header=None, names=cols)
+        df["coverage"] = (df["length"] / df["qlen"]) * 100
         df = df[df["pident"] >= min_pident]
+        df = df[df["coverage"] >= min_coverage]
         df = df.sort_values("bitscore", ascending=False).drop_duplicates("contig_id")
         df = df.rename(columns={
             "subject": "{}_subject".format(label),
@@ -81,13 +86,17 @@ def parse_blast_results(blast_file, label, min_pident=70.0, min_coverage=70.0):
 
 
 def annotate_with_plsdb(plasmid_fasta, config, output_dir, threads=8):
-    """BLASTs against PLSDB and enriches with taxonomy."""
+    """
+    BLASTs against PLSDB and enriches with taxonomy.
+    Uses 95% identity and 95% coverage thresholds for reliable taxonomic assignment
+    (Partridge et al., 2023; Partridge et al., 2022).
+    """
     try:
         plsdb_fasta = Path("data/plsdb/sequences.fasta")
         plsdb_out = output_dir / "plsdb_blast.tsv"
 
         run_blast(plasmid_fasta, plsdb_fasta, plsdb_out, threads=threads, task="blastn", evalue=1e-10)
-        blast_df = parse_blast_results(plsdb_out, "plsdb")
+        blast_df = parse_blast_results(plsdb_out, "plsdb", min_pident=95.0, min_coverage=95.0)
 
         if blast_df.empty:
             print("[Annotator] PLSDB: no hits found")
@@ -180,11 +189,8 @@ def parse_diamond_plasann(blast_file, label, min_pident=70.0):
         if df.empty:
             return pd.DataFrame(columns=["contig_id"])
 
-        # Extract gene name from subject ID (format: ProteinID|GeneName|Product)
         df["gene_name"] = df["subject"].str.split("|").str[1]
         df["product"] = df["subject"].str.split("|").str[2].str.replace("_", " ")
-
-        # Map protein_id back to contig_id (Prodigal adds _1, _2, etc.)
         df["contig_id"] = df["protein_id"].str.rsplit("_", n=1).str[0]
 
         df = df.sort_values("bitscore", ascending=False).drop_duplicates("contig_id")
@@ -242,7 +248,6 @@ def run_annotation(ensemble_df, input_fasta, output_dir, config_path="config.yam
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Extract plasmids
     plasmid_fasta = output_dir / "plasmids.fasta"
     n_plasmids = extract_plasmid_fasta(ensemble_df, input_fasta, plasmid_fasta)
 
@@ -252,38 +257,38 @@ def run_annotation(ensemble_df, input_fasta, output_dir, config_path="config.yam
 
     base = Path(config_path).parent
 
-    # BLAST against CARD
+    # BLAST against CARD (95% identity, 95% coverage - CARD recommended thresholds)
     card_db = base / config['databases']['card']
     card_out = output_dir / "card_blast.tsv"
     run_blast(plasmid_fasta, card_db, card_out, threads=threads, task="blastn")
-    card_df = parse_blast_results(card_out, "card")
+    card_df = parse_blast_results(card_out, "card", min_pident=95.0, min_coverage=95.0)
 
-    # BLAST against MIBiG
+    # BLAST against MIBiG (70% identity, 70% coverage)
     mibig_db = base / config['databases']['mibig']
     mibig_out = output_dir / "mibig_blast.tsv"
     run_blast(plasmid_fasta, mibig_db, mibig_out, threads=threads, task="blastn")
-    mibig_df = parse_blast_results(mibig_out, "mibig")
+    mibig_df = parse_blast_results(mibig_out, "mibig", min_pident=70.0, min_coverage=70.0)
 
     # Predict proteins for DIAMOND searches
     proteins_fasta = predict_proteins(plasmid_fasta, output_dir)
 
-    # DIAMOND against CAZy
+    # DIAMOND against CAZy (70% identity)
     cazy_df = pd.DataFrame(columns=["contig_id"])
     if proteins_fasta and proteins_fasta.exists():
         cazy_db = base / config['databases']['cazy']
         cazy_out = output_dir / "cazy_diamond.tsv"
         run_diamond(proteins_fasta, cazy_db, cazy_out, threads=threads)
-        cazy_df = parse_blast_results(cazy_out, "cazy")
+        cazy_df = parse_blast_results(cazy_out, "cazy", min_pident=70.0, min_coverage=70.0)
         if not cazy_df.empty:
             cazy_df["contig_id"] = cazy_df["contig_id"].str.rsplit("_", n=1).str[0]
             cazy_df = cazy_df.drop_duplicates("contig_id")
 
-    # DIAMOND against PlasAnn functional databases
+    # DIAMOND against PlasAnn functional databases (70% identity)
     plasann_results = {}
     if proteins_fasta and proteins_fasta.exists():
         plasann_results = run_plasann_annotation(proteins_fasta, output_dir, threads=threads)
 
-    # BLAST against PLSDB + taxonomy
+    # BLAST against PLSDB + taxonomy (95% identity, 95% coverage)
     plsdb_df = annotate_with_plsdb(plasmid_fasta, config, output_dir, threads=threads)
 
     # Merge all results
