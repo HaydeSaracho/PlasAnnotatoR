@@ -58,20 +58,43 @@ bash download_databases.sh
 
 Activate the main environment before running:
 
-    micromamba activate plasannotator
+```bash
+micromamba activate plasannotator
+```
 
-Run with the included test dataset:
+Run with the included test datasets:
 
-    python main.py -i test_data/test.fasta -o results/test -t 8
+```bash
+# Full-length sequences (genomes)
+python main.py -i test_data/test_full_length.fasta -o results/test_full_length -t 8
 
-Full pipeline:
+# Fragmented contigs (metagenomes)
+python main.py -i test_data/test_fragmented.fasta -o results/test_fragmented -t 8
+```
 
-    python main.py -i input.fasta -o results/ -t 8
+Full pipeline on your data:
+
+```bash
+python main.py -i input.fasta -o results/ -t 8
+```
 
 Skip annotation (classification only, recommended for computers with less than 8 GB RAM):
 
-    python main.py -i input.fasta -o results/ --skip-annotation -t 8
+```bash
+python main.py -i input.fasta -o results/ --skip-annotation -t 8
+```
 
+Skip network visualization:
+
+```bash
+python main.py -i input.fasta -o results/ --skip-network -t 8
+```
+
+Adjust ensemble threshold (default: 0.6):
+
+```bash
+python main.py -i input.fasta -o results/ --threshold 0.5 -t 8
+```
 ## Arguments
 
 | Argument | Description | Default |
