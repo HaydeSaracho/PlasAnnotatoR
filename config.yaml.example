@@ -1,11 +1,9 @@
 # PlasAnnotatoR - Configuration file
 # Edit the paths below to match your installation
-
 project:
   name: PlasAnnotatoR
   version: "1.0"
   output_dir: results/
-
 environments:
   plasclass:
     # Path to the plasclass conda/micromamba environment
@@ -26,15 +24,13 @@ environments:
     threshold: 0.5
   rf_model:
     model_path: data/models/rf_model.pkl
-
 ensemble:
   weights:
-    plasclass: 0.9017
-    plasme: 0.9748
-    plasmidhunter: 0.9178
-    rf_model: 0.9872
+    plasclass: 0.8421
+    plasme: 0.8895
+    plasmidhunter: 0.7898
+    rf_model: 0.8809
   final_threshold: 0.6
-
 databases:
   # All paths relative to PlasAnnotatoR root directory
   plsdb: data/plsdb/sequences.fasta
@@ -45,7 +41,6 @@ databases:
   card: data/indexes/nucleotide_fasta_protein_homolog_model.fasta
   mibig: data/indexes/mibig_4.0.fasta
   cazy: data/indexes/cazy.fasta
-
 resources:
   threads: 8
   memory_gb: 16
