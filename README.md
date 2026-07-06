@@ -102,7 +102,6 @@ python main.py -i input.fasta -o results/ --threshold 0.5 -t 8
 | `-i` / `--input` | Input FASTA file (contigs) | required |
 | `-o` / `--output` | Output directory | `results/` |
 | `-t` / `--threads` | Number of threads | `8` |
-| `-c` / `--config` | Config file | `config.yaml` |
 | `--threshold` | Ensemble score threshold for plasmid classification | `0.6` |
 | `--skip-annotation` | Skip functional annotation. Recommended for computers with less than 8 GB RAM | `False` |
 | `--skip-network` | Skip taxonomic network construction | `False` |
