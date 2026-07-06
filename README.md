@@ -121,37 +121,6 @@ python main.py -i input.fasta -o results/ --threshold 0.5 -t 8
     └── network/
         └── plasmid_network.html      Standalone network visualization
 
-## Pipeline layers
-
-    Layer 1 - Ensemble classifier
-        PlasClass (AUC 0.9017) + PLASMe (AUC 0.9748) +
-        PlasmidHunter (AUC 0.9178) + custom RF model (AUC 0.9872)
-        weighted vote -> plasmid/chromosome label + ensemble score
-
-    Layer 2 - Annotation
-        BLAST vs CARD (AMR genes)
-        BLAST vs MIBiG 4.0 (biosynthetic gene clusters)
-        DIAMOND blastp vs CAZy (carbohydrate-active enzymes)
-        BLAST vs PLSDB 2025 (identity + taxonomy)
-
-    Layer 3 - Contextual network
-        Interactive pyvis network: Genus -> Plasmid
-        Edge length proportional to PLSDB identity
-
-    Layer 4 - HTML report
-        Statistics, annotated plasmid table, embedded network
-
-## Custom RF model
-
-Trained on PLSDB 2025 (72,556 plasmids) and chromosomal fragments from 3,362 RefSeq Complete genomes. Features: 5-mer frequencies (1,024 features). Fragments: 500 bp to 500 kbp.
-
-| Tool | AUC |
-|---|---|
-| RF model (custom) | 0.9872 |
-| PLASMe | 0.9748 |
-| PlasmidHunter | 0.9178 |
-| PlasClass | 0.9017 |
-
 ## Author
 
 Hayde Saracho
