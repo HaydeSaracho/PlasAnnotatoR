@@ -108,18 +108,29 @@ python main.py -i input.fasta -o results/ --threshold 0.5 -t 8
 
 ## Output
 
-    results/
-    ├── plasannotator_report.html     Interactive HTML report
-    ├── ensemble_results.tsv          Per-contig classification scores
-    ├── ensemble/                     Individual tool outputs
-    ├── annotation/
-    │   ├── annotation_results.tsv    Full annotation table
-    │   ├── card_blast.tsv            AMR hits
-    │   ├── mibig_blast.tsv           BGC hits
-    │   ├── cazy_diamond.tsv          CAZyme hits
-    │   └── plsdb_blast.tsv           PLSDB hits + taxonomy
-    └── network/
-        └── plasmid_network.html      Standalone network visualization
+```
+results/
+├── plasannotator_report.html          Interactive HTML report
+├── ensemble/
+│   ├── ensemble_results.tsv           Per-contig classification scores
+│   ├── plasclass/
+│   │   └── plasclass_output           PlasClass scores
+│   ├── plasme/
+│   │   └── plasme_output_report.csv   PLASMe scores
+│   ├── plasmidhunter/
+│   │   └── predictions.tsv            PlasmidHunter scores
+│   └── rf_model/
+│       └── rf_model_scores.tsv        RF model scores
+├── annotation/
+│   ├── annotation_results.tsv         Full annotation table
+│   ├── card_blast.tsv                 AMR hits (CARD)
+│   ├── mibig_blast.tsv                BGC hits (MIBiG)
+│   ├── cazy_diamond.tsv               CAZyme hits (CAZy)
+│   ├── plsdb_blast.tsv                PLSDB hits + taxonomy
+│   └── plasann_*.tsv                  PlasAnn functional hits
+└── network/
+    └── plasmid_network.html           Standalone network visualization
+```
 
 ## Author
 
