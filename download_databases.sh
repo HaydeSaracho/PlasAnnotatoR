@@ -8,9 +8,7 @@ mkdir -p data/plsdb/meta data/indexes data/models data/plasann
 # RF model
 echo ""
 echo "[1/7] Downloading RF model..."
-wget -O data/models/rf_model.zip "https://zenodo.org/records/21148201/files/rf_model.zip?download=1"
-unzip data/models/rf_model.zip -d data/models/
-rm data/models/rf_model.zip
+wget -O data/models/rf_model.pkl "https://zenodo.org/records/21148201/files/rf_model.pkl?download=1"
 echo "Done."
 
 # PLSDB 2025 sequences
