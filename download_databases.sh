@@ -8,7 +8,7 @@ mkdir -p data/plsdb/meta data/indexes data/models data/plasann
 # RF model
 echo ""
 echo "[1/7] Downloading RF model..."
-wget -O data/models/rf_model.zip "https://doi.org/10.5281/zenodo.20348779"
+wget -O data/models/rf_model.zip "https://zenodo.org/records/21148201/files/rf_model.zip?download=1"
 unzip data/models/rf_model.zip -d data/models/
 rm data/models/rf_model.zip
 echo "Done."
