@@ -64,7 +64,7 @@ echo "Done."
 # PLASMe database
 echo ""
 echo "Downloading PLASMe database (~12.4 GB)..."
-wget -O ~/PLASMe/DB.zip "https://zenodo.org/records/8046934/files/DB.zip"
+wget -O data/plasme/DB.zip "https://zenodo.org/records/8046934/files/DB.zip"
 unzip ~/PLASMe/DB.zip -d ~/PLASMe/
 rm ~/PLASMe/DB.zip
 echo "Done."
