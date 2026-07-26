@@ -3,7 +3,7 @@ set -e
 echo "================================================"
 echo "  PlasAnnotatoR - Database Download"
 echo "================================================"
-mkdir -p data/plsdb/meta data/indexes data/models data/plasann
+mkdir -p data/plsdb/meta data/indexes data/models data/plasann data/plasme
 
 # RF model
 echo ""
